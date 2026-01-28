@@ -157,56 +157,16 @@ class CodeFileBrowser {
             };
             
             script.onerror = () => {
-                console.error('Failed to load Monaco Loader - falling back to CDN');
-                this.loadMonacoEditorCDN().then(resolve).catch(reject);
+                console.error('Failed to load Monaco Loader (local).');
+                reject(new Error('Failed to load Monaco Loader (local). No CDN fallback allowed.'));
             };
             
             document.head.appendChild(script);
         });
     }
     
-    // CDN Fallback für Notfälle - Vereinfacht ohne require.js
-    async loadMonacoEditorCDN() {
-        console.log('Loading Monaco Editor from CDN (fallback)...');
-        
-        // CSS laden
-        const cssLink = document.createElement('link');
-        cssLink.rel = 'stylesheet';
-        cssLink.href = 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs/editor/editor.main.css';
-        document.head.appendChild(cssLink);
-        
-        return new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs/loader.js';
-            
-            script.onload = () => {
-                if (typeof require !== 'undefined') {
-                    require.config({ 
-                        paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs' } 
-                    });
-                    
-                    require(['vs/editor/editor.main'], () => {
-                        console.log('Monaco Editor loaded from CDN');
-                        resolve();
-                    }, (error) => {
-                        console.error('Monaco Editor CDN load failed:', error);
-                        reject(new Error('Failed to load Monaco Editor from CDN'));
-                    });
-                } else {
-                    console.error('require.js not available from CDN loader');
-                    reject(new Error('require.js not available'));
-                }
-            };
-            
-            script.onerror = () => {
-                console.error('Failed to load Monaco Editor from CDN');
-                reject(new Error('Failed to load Monaco Editor'));
-            };
-            
-            document.head.appendChild(script);
-        });
-    }
-
+    // CDN Code removed for security/privacy reasons
+    
     async loadFileList(path = '') {
         console.log('Loading file list for path:', path);
         
@@ -1864,6 +1824,17 @@ class CodeAreaReplacer {
                 'MediaList 1': '$slice->getMediaList(1)',
                 'Link 1': '$slice->getLink(1)',
                 'LinkList 1': '$slice->getLinkList(1)'
+            },
+            'Formatting / Intl': {
+                'Intl Date (Full)': 'rex_formatter::format(time(), \'intlDate\', [IntlDateFormatter::FULL]);',
+                'Intl Date (Short)': 'rex_formatter::format(time(), \'intlDate\', [IntlDateFormatter::SHORT]);',
+                'Intl DateTime': 'rex_formatter::format(time(), \'intlDateTime\', [IntlDateFormatter::MEDIUM, IntlDateFormatter::SHORT]);',
+                'Custom Strftime': 'rex_formatter::format(time(), \'strftime\', \'%d.%m.%Y\');',
+                'Format Number': 'rex_formatter::number(1234.56, [2, \',\', \'.\']);',
+                'Format Bytes': 'rex_formatter::bytes($filesize);',
+                'Format URL': 'rex_formatter::url($url, [\'target\' => \'_blank\']);',
+                'Format Email': 'rex_formatter::email($email);',
+                'Truncate Text': 'rex_formatter::truncate($string, [\'length\' => 100, \'etc\' => \'...\']);'
             },
             'Template': {
                 'Article Content': 'echo $this->getArticle();',

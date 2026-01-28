@@ -1,6 +1,12 @@
 # Changelog
 
-## [1.2.0] - 2026-01-28
+## [1.2.1] - 2026-01-28
+### Fixed
+- Fatal Error: `CodeApi::__construct()` neu deklariert (doppelter Konstruktor entfernt).
+- Fatal Error: `CodeSelfDestruct` Klasse doppelt vorhanden (Case-Sensitivity Bereinigung).
+- Cleanup: Ungenutzte Datei `monaco-loader-simple.js` entfernt.
+- Security: API-Zugriff weiter gehärtet.
+
 ### Added
 - **Global Editor**: Monaco Editor ersetzt nun automatisch Textareas mit der Klasse `.rex-code` im gesamten Backend (wenn `be_style/codemirror` nicht aktiv ist).
 - **Editor Toolbar**: Neue Toolbar über den Textareas mit nützlichen Tools.

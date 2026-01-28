@@ -29,6 +29,30 @@ class CodeApi
         'node_modules', '.git', '.svn', 'vendor', 'cache', 'log', 'tmp', 'temp'
     ];
 
+    public function __construct()
+    {
+        // STRICT SECURITY CHECK
+        // Nur eingeloggte Backend-User mit Admin-Rechten dürfen die API nutzen
+        $user = \rex::getUser();
+        if (!$user || !$user->isAdmin()) {
+            // Wir werfen hier keine Exception mit Details, sondern beenden hart für maximale Sicherheit
+            header('HTTP/1.1 403 Forbidden');
+            echo json_encode(['success' => false, 'error' => 'Access denied. Administrator privileges required.']);
+            exit;
+        }
+
+        $this->dataDir = rex_path::addonData('code', 'backups');
+        $this->trashDir = rex_path::addonData('code', 'trash');
+        
+        // Verzeichnisse erstellen falls nicht vorhanden
+        if (!is_dir($this->dataDir)) {
+            rex_dir::create($this->dataDir);
+        }
+        if (!is_dir($this->trashDir)) {
+            rex_dir::create($this->trashDir);
+        }
+    }
+
     /**
      * Kritische Dateien, die nicht gelöscht werden dürfen
      */
@@ -53,20 +77,6 @@ class CodeApi
         'sitemap.xml',
         'web.config'
     ];
-
-    public function __construct()
-    {
-        $this->dataDir = rex_addon::get('code')->getDataPath('backups');
-        if (!is_dir($this->dataDir)) {
-            rex_dir::create($this->dataDir);
-        }
-        
-        // Trash-Verzeichnis erstellen
-        $this->trashDir = rex_addon::get('code')->getDataPath('trash');
-        if (!is_dir($this->trashDir)) {
-            rex_dir::create($this->trashDir);
-        }
-    }
 
     public function handleRequest(string $action): array
     {
