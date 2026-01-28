@@ -93,6 +93,15 @@ $content = '
                 <div class="modal-header">
                     <button type="button" class="close" id="btn-modal-close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                     <button type="button" class="close" id="btn-modal-fullscreen" style="margin-right: 10px; font-size: 18px;" title="Vollbild umschalten"><i class="rex-icon fa-expand"></i></button>
+                   
+                    <div style="float: right; margin-right: 15px; margin-top: 1px;">
+                        <select id="theme-switcher" class="form-control input-sm" style="height: 22px; padding: 0 5px; font-size: 12px; width: auto; display: inline-block;">
+                            <option value="vs-dark">Dark</option>
+                            <option value="vs">Light</option>
+                            <option value="hc-black">High Contrast</option>
+                        </select>
+                    </div>
+
                     <h4 class="modal-title" id="codeEditorLabel">
                         <i class="rex-icon fa-edit"></i> 
                         <span id="current-file-name">Editor</span>

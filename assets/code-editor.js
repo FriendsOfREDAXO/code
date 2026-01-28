@@ -92,6 +92,15 @@ class CodeFileBrowser {
         $('#btn-modal-fullscreen').on('click', () => {
             this.toggleFullscreen();
         });
+
+        // Theme Switcher Init & Event
+        const themeSwitcher = $('#theme-switcher');
+        if (themeSwitcher.length) {
+            themeSwitcher.val(this.getTheme());
+            themeSwitcher.on('change', (e) => {
+                this.setTheme(e.target.value);
+            });
+        }
         
         // Modal Events für Layout-Refresh
         $('#code-editor-modal').on('shown.bs.modal', () => {
@@ -163,17 +172,17 @@ class CodeFileBrowser {
         // CSS laden
         const cssLink = document.createElement('link');
         cssLink.rel = 'stylesheet';
-        cssLink.href = 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/editor/editor.main.css';
+        cssLink.href = 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs/editor/editor.main.css';
         document.head.appendChild(cssLink);
         
         return new Promise((resolve, reject) => {
             const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js';
+            script.src = 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs/loader.js';
             
             script.onload = () => {
                 if (typeof require !== 'undefined') {
                     require.config({ 
-                        paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' } 
+                        paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs' } 
                     });
                     
                     require(['vs/editor/editor.main'], () => {
@@ -480,6 +489,18 @@ class CodeFileBrowser {
         this.setFileModified(false);
     }
 
+    getTheme() {
+        return localStorage.getItem('rex_code_theme') || 'vs-dark';
+    }
+
+    setTheme(themeName) {
+        localStorage.setItem('rex_code_theme', themeName);
+        console.log('Theme set to:', themeName);
+        if (typeof monaco !== 'undefined') {
+            monaco.editor.setTheme(themeName);
+        }
+    }
+
     createMonacoEditor() {
         const container = document.getElementById('monaco-editor');
         if (!container) {
@@ -488,7 +509,7 @@ class CodeFileBrowser {
         }
 
         this.monacoEditor = monaco.editor.create(container, {
-            theme: 'vs-dark',
+            theme: this.getTheme(),
             fontSize: 14,
             fontFamily: 'Monaco, Consolas, "Courier New", monospace',
             minimap: { enabled: true },
@@ -1821,12 +1842,26 @@ class CodeAreaReplacer {
             const content = textarea.val();
             
             // Wrapper erstellen
-            const wrapper = $('<div class="monaco-wrapper" style="position:relative; border: 1px solid #ccc;"></div>');
+            const wrapper = $('<div class="monaco-wrapper" style="position:relative; border: 1px solid #c1c9d4;"></div>');
+            const toolbar = $(`
+                <div class="monaco-toolbar" style="background: #f0f4f9; padding: 5px; border-bottom: 1px solid #c1c9d4; display: flex; justify-content: flex-end;">
+                    <select class="form-control input-sm theme-switcher" style="height: 22px; padding: 0 5px; font-size: 12px; width: auto;">
+                        <option value="vs-dark">Dark</option>
+                        <option value="vs">Light</option>
+                        <option value="hc-black">High Contrast</option>
+                    </select>
+                </div>
+            `);
             const editorContainer = $(`<div style="height: ${height}px; width: 100%;"></div>`);
             
             textarea.hide().after(wrapper);
+            wrapper.append(toolbar);
             wrapper.append(editorContainer);
             
+            // Theme initial setzen in Select
+            const currentTheme = localStorage.getItem('rex_code_theme') || 'vs-dark';
+            toolbar.find('select').val(currentTheme);
+
             // Sprache ermitteln (Default: PHP/HTML Mix)
             let language = 'php';
             if (textarea.hasClass('rex-code-css')) language = 'css';
@@ -1839,12 +1874,21 @@ class CodeAreaReplacer {
             const editor = monaco.editor.create(editorContainer[0], {
                 value: content,
                 language: language,
-                theme: 'vs-dark',
+                theme: localStorage.getItem('rex_code_theme') || 'vs-dark',
                 automaticLayout: true,
                 minimap: { enabled: false },
                 scrollBeyondLastLine: false,
                 lineNumbers: 'on',
                 wordWrap: 'on'
+            });
+
+            // Theme Switcher Event
+            toolbar.find('select').on('change', (e) => {
+                const newTheme = e.target.value;
+                localStorage.setItem('rex_code_theme', newTheme);
+                monaco.editor.setTheme(newTheme);
+                // Update all other switchers
+                $('.monaco-toolbar select').val(newTheme);
             });
 
             // Sync on Change
