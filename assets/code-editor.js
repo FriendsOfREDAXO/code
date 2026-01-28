@@ -51,6 +51,14 @@ class CodeFileBrowser {
 
     bindEvents() {
         // Toolbar Buttons
+        $('#btn-new-file').on('click', () => {
+            this.createFile('file');
+        });
+        
+        $('#btn-new-folder').on('click', () => {
+            this.createFile('folder');
+        });
+        
         $('#btn-refresh').on('click', () => {
             this.loadFileList(this.currentPath);
         });
@@ -331,6 +339,9 @@ class CodeFileBrowser {
                                 <button class="btn btn-xs btn-primary edit-file-btn" data-path="${item.path}" title="Bearbeiten">
                                     <i class="rex-icon fa-edit"></i>
                                 </button>
+                                <button class="btn btn-xs btn-info copy-file-btn" data-path="${item.path}" title="Kopieren">
+                                    <i class="rex-icon fa-copy"></i>
+                                </button>
                                 ${!this.isProtectedFile(item.path) ? 
                                     `<button class="btn btn-xs btn-danger delete-file-btn" data-path="${item.path}" title="Löschen">
                                         <i class="rex-icon fa-trash"></i>
@@ -364,6 +375,13 @@ class CodeFileBrowser {
             e.stopPropagation();
             const filePath = $(e.currentTarget).data('path');
             this.openFile(filePath);
+        });
+        
+        // File Copy Buttons
+        $('.copy-file-btn').off('click').on('click', (e) => {
+            e.stopPropagation();
+            const filePath = $(e.currentTarget).data('path');
+            this.copyFile(filePath);
         });
         
         // File Delete Buttons
@@ -876,6 +894,128 @@ class CodeFileBrowser {
         } catch (error) {
             console.error('Error deleting file:', error);
             alert('Fehler beim Löschen der Datei: ' + error.message);
+        }
+    }
+
+    async createFile(type = 'file') {
+        const name = prompt(type === 'folder' ? 'Ordnername eingeben:' : 'Dateiname eingeben (mit Erweiterung, z.B. test.php):');
+        
+        if (!name || name.trim() === '') {
+            return;
+        }
+
+        const trimmedName = name.trim();
+
+        // Prüfe auf ungültige Zeichen
+        if (/[\/\\:\*\?"<>\|]/.test(trimmedName)) {
+            alert('Der Name enthält ungültige Zeichen. Bitte vermeiden Sie: / \\ : * ? " < > |');
+            return;
+        }
+
+        try {
+            const cacheBuster = Date.now();
+            const formData = new FormData();
+            formData.append('path', this.currentPath);
+            formData.append('name', trimmedName);
+            formData.append('type', type);
+
+            const response = await fetch(`index.php?page=code/main&code_api=1&action=create&_cb=${cacheBuster}`, {
+                method: 'POST',
+                body: formData,
+                cache: 'no-cache',
+                headers: {
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log('Create response:', data);
+
+            if (data.success) {
+                alert(data.message || (type === 'folder' ? 'Ordner erfolgreich erstellt!' : 'Datei erfolgreich erstellt!'));
+                
+                // Dateiliste aktualisieren
+                this.loadFileList(this.currentPath);
+                
+                // Bei Datei: Optional automatisch öffnen
+                if (type === 'file' && data.path) {
+                    setTimeout(() => {
+                        if (confirm('Möchten Sie die neue Datei jetzt bearbeiten?')) {
+                            this.openFile(data.path);
+                        }
+                    }, 100);
+                }
+            } else {
+                throw new Error(data.error || 'Fehler beim Erstellen');
+            }
+
+        } catch (error) {
+            console.error('Error creating:', error);
+            alert('Fehler beim Erstellen: ' + error.message);
+        }
+    }
+
+    async copyFile(filePath) {
+        console.log('Copying file:', filePath);
+        
+        const fileName = filePath.split('/').pop();
+        const newName = prompt(`Neuen Namen eingeben (oder leer lassen für automatischen Namen):\n\nOriginal: ${fileName}`, '');
+        
+        // null = Abbruch, '' = automatischer Name
+        if (newName === null) {
+            return;
+        }
+
+        const trimmedName = newName.trim();
+
+        // Prüfe auf ungültige Zeichen (falls Name angegeben wurde)
+        if (trimmedName && /[\/\\:\*\?"<>\|]/.test(trimmedName)) {
+            alert('Der Name enthält ungültige Zeichen. Bitte vermeiden Sie: / \\ : * ? " < > |');
+            return;
+        }
+
+        try {
+            const cacheBuster = Date.now();
+            const formData = new FormData();
+            formData.append('file', filePath);
+            if (trimmedName) {
+                formData.append('newName', trimmedName);
+            }
+
+            const response = await fetch(`index.php?page=code/main&code_api=1&action=copy&_cb=${cacheBuster}`, {
+                method: 'POST',
+                body: formData,
+                cache: 'no-cache',
+                headers: {
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log('Copy response:', data);
+
+            if (data.success) {
+                alert(data.message || `Datei erfolgreich kopiert als: ${data.name}`);
+                
+                // Dateiliste aktualisieren
+                this.loadFileList(this.currentPath);
+            } else {
+                throw new Error(data.error || 'Fehler beim Kopieren');
+            }
+
+        } catch (error) {
+            console.error('Error copying file:', error);
+            alert('Fehler beim Kopieren der Datei: ' + error.message);
         }
     }
 }

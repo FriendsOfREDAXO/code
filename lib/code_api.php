@@ -121,6 +121,10 @@ class CodeApi
                 return $this->deleteFromTrash(rex_post('trash', 'string'));
             case 'trash-empty':
                 return $this->emptyTrash();
+            case 'create':
+                return $this->createFile(rex_post('path', 'string'), rex_post('name', 'string'), rex_post('type', 'string', 'file'));
+            case 'copy':
+                return $this->copyFile(rex_post('file', 'string'), rex_post('newName', 'string', ''));
             default:
                 throw new Exception('Unknown action: ' . $action);
         }
@@ -851,4 +855,180 @@ class CodeApi
             'message' => $deletedCount . ' von ' . $totalFiles . ' Dateien wurden endgültig gelöscht'
         ];
     }
+
+    /**
+     * Erstellt eine neue Datei oder einen neuen Ordner
+     */
+    private function createFile(string $path, string $name, string $type = 'file'): array
+    {
+        if (empty($name)) {
+            return ['success' => false, 'error' => 'Name ist erforderlich'];
+        }
+
+        // Sicherstellen, dass der Name keine gefährlichen Zeichen enthält
+        if (preg_match('/[\/\\\\:\*\?"<>\|]/', $name)) {
+            return ['success' => false, 'error' => 'Name enthält ungültige Zeichen'];
+        }
+
+        $basePath = rex_path::base();
+        $fullPath = $basePath . ltrim($path, '/');
+        
+        if (!is_dir($fullPath) || !$this->isAllowedPath($fullPath)) {
+            return ['success' => false, 'error' => 'Verzeichnis nicht gefunden oder nicht erlaubt'];
+        }
+
+        $newItemPath = $fullPath . '/' . $name;
+
+        if (file_exists($newItemPath)) {
+            return ['success' => false, 'error' => 'Datei oder Ordner existiert bereits'];
+        }
+
+        try {
+            if ($type === 'folder') {
+                // Ordner erstellen
+                if (rex_dir::create($newItemPath)) {
+                    return [
+                        'success' => true, 
+                        'message' => 'Ordner erfolgreich erstellt',
+                        'path' => trim($path . '/' . $name, '/')
+                    ];
+                } else {
+                    return ['success' => false, 'error' => 'Fehler beim Erstellen des Ordners'];
+                }
+            } else {
+                // Datei erstellen
+                $extension = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+                
+                if (!$this->isAllowedExtension($extension)) {
+                    return ['success' => false, 'error' => 'Dateityp nicht erlaubt'];
+                }
+
+                // Leere Datei mit Standard-Inhalt erstellen
+                $content = $this->getDefaultFileContent($extension);
+                
+                if (rex_file::put($newItemPath, $content)) {
+                    return [
+                        'success' => true, 
+                        'message' => 'Datei erfolgreich erstellt',
+                        'path' => trim($path . '/' . $name, '/')
+                    ];
+                } else {
+                    return ['success' => false, 'error' => 'Fehler beim Erstellen der Datei'];
+                }
+            }
+        } catch (Exception $e) {
+            error_log("Code Editor - Create failed: " . $e->getMessage());
+            return ['success' => false, 'error' => 'Erstellen fehlgeschlagen: ' . $e->getMessage()];
+        }
+    }
+
+    /**
+     * Kopiert eine Datei
+     */
+    private function copyFile(string $filePath, string $newName = ''): array
+    {
+        if (empty($filePath)) {
+            return ['success' => false, 'error' => 'Dateipfad ist erforderlich'];
+        }
+
+        $basePath = rex_path::base();
+        $fullPath = $basePath . ltrim($filePath, '/');
+        
+        if (!file_exists($fullPath) || !$this->isAllowedPath($fullPath)) {
+            return ['success' => false, 'error' => 'Datei nicht gefunden oder nicht erlaubt'];
+        }
+
+        if (is_dir($fullPath)) {
+            return ['success' => false, 'error' => 'Ordner kopieren wird noch nicht unterstützt'];
+        }
+
+        $extension = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
+        if (!$this->isAllowedExtension($extension)) {
+            return ['success' => false, 'error' => 'Dateityp nicht erlaubt'];
+        }
+
+        // Neuen Dateinamen generieren
+        $dir = dirname($fullPath);
+        $originalName = pathinfo($fullPath, PATHINFO_FILENAME);
+        $ext = pathinfo($fullPath, PATHINFO_EXTENSION);
+
+        if (empty($newName)) {
+            // Automatischen Namen mit _copy suffix generieren
+            $counter = 1;
+            do {
+                $newFileName = $originalName . '_copy' . ($counter > 1 ? $counter : '') . '.' . $ext;
+                $newFullPath = $dir . '/' . $newFileName;
+                $counter++;
+            } while (file_exists($newFullPath) && $counter < 100);
+            
+            if ($counter >= 100) {
+                return ['success' => false, 'error' => 'Zu viele Kopien existieren bereits'];
+            }
+        } else {
+            // Benutzerdefinierten Namen verwenden
+            if (preg_match('/[\/\\\\:\*\?"<>\|]/', $newName)) {
+                return ['success' => false, 'error' => 'Name enthält ungültige Zeichen'];
+            }
+            
+            $newFullPath = $dir . '/' . $newName;
+            
+            if (file_exists($newFullPath)) {
+                return ['success' => false, 'error' => 'Datei existiert bereits'];
+            }
+        }
+
+        try {
+            if (copy($fullPath, $newFullPath)) {
+                $relativePath = str_replace($basePath, '', $newFullPath);
+                $relativePath = ltrim($relativePath, '/');
+                
+                return [
+                    'success' => true, 
+                    'message' => 'Datei erfolgreich kopiert',
+                    'path' => $relativePath,
+                    'name' => basename($newFullPath)
+                ];
+            } else {
+                return ['success' => false, 'error' => 'Fehler beim Kopieren der Datei'];
+            }
+        } catch (Exception $e) {
+            error_log("Code Editor - Copy failed: " . $e->getMessage());
+            return ['success' => false, 'error' => 'Kopieren fehlgeschlagen: ' . $e->getMessage()];
+        }
+    }
+
+    /**
+     * Gibt Standard-Inhalt für neue Dateien zurück
+     */
+    private function getDefaultFileContent(string $extension): string
+    {
+        switch ($extension) {
+            case 'php':
+                return "<?php\n\n// Neue PHP-Datei\n";
+            case 'html':
+            case 'htm':
+                return "<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Neues Dokument</title>\n</head>\n<body>\n    \n</body>\n</html>";
+            case 'css':
+                return "/* Neues Stylesheet */\n\n";
+            case 'scss':
+            case 'less':
+                return "// Neues Stylesheet\n\n";
+            case 'js':
+                return "// Neue JavaScript-Datei\n\n";
+            case 'json':
+                return "{\n    \n}";
+            case 'xml':
+                return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root>\n    \n</root>";
+            case 'md':
+                return "# Neues Dokument\n\n";
+            case 'sql':
+                return "-- Neue SQL-Datei\n\n";
+            case 'yml':
+            case 'yaml':
+                return "# Neue YAML-Datei\n\n";
+            default:
+                return '';
+        }
+    }
 }
+

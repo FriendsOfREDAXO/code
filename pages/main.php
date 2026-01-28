@@ -33,6 +33,12 @@ $content = '
             <div class="panel-title">
                 <i class="rex-icon fa-code"></i> Code Editor
                 <div class="pull-right btn-group">
+                    <button class="btn btn-success btn-xs" id="btn-new-file" title="Neue Datei erstellen">
+                        <i class="rex-icon fa-file-o"></i> Neue Datei
+                    </button>
+                    <button class="btn btn-success btn-xs" id="btn-new-folder" title="Neuen Ordner erstellen">
+                        <i class="rex-icon fa-folder-o"></i> Neuer Ordner
+                    </button>
                     <button class="btn btn-default btn-xs" id="btn-refresh" title="Aktualisieren">
                         <i class="rex-icon fa-refresh"></i>
                     </button>
@@ -66,7 +72,7 @@ $content = '
                         <th>Name</th>
                         <th style="width: 100px">Größe</th>
                         <th style="width: 150px">Geändert</th>
-                        <th style="width: 80px">Aktionen</th>
+                        <th style="width: 130px">Aktionen</th>
                     </tr>
                 </thead>
                 <tbody id="file-list">

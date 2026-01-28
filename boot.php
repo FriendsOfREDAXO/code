@@ -11,11 +11,11 @@ require_once __DIR__ . '/lib/code_api.php';
 use KLXM\Code\CodeApi;
 
 if (rex::isBackend()) {
-    // CSS einbinden
-    rex_view::addCssFile($this->getAssetsUrl('code-editor.css'));
+    // CSS einbinden mit Cache-Busting (Timestamp)
+    rex_view::addCssFile($this->getAssetsUrl('code-editor.css') . '?t=' . time());
     
-    // JavaScript einbinden  
-    rex_view::addJsFile($this->getAssetsUrl('code-editor.js'));
+    // JavaScript einbinden mit Cache-Busting (Timestamp)
+    rex_view::addJsFile($this->getAssetsUrl('code-editor.js') . '?t=' . time());
 }
 
 // API Endpoints registrieren
