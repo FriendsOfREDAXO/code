@@ -551,10 +551,32 @@ class CodeFileBrowser {
 
     closeEditor() {
         $('#code-editor-modal').modal('hide');
+        // Reset fullscreen state
+        if (this.isFullscreen) {
+            this.toggleFullscreen();
+        }
     }
     
     toggleFullscreen() {
-        // Deprecated in Modal mode
+        const modal = $('#code-editor-modal');
+        const btn = $('#btn-modal-fullscreen i');
+        
+        if (!this.isFullscreen) {
+            modal.addClass('modal-fullscreen');
+            btn.removeClass('fa-expand').addClass('fa-compress');
+            this.isFullscreen = true;
+        } else {
+            modal.removeClass('modal-fullscreen');
+            btn.removeClass('fa-compress').addClass('fa-expand');
+            this.isFullscreen = false;
+        }
+        
+        // Trigger resize for Monaco
+        if (this.monacoEditor) {
+            setTimeout(() => {
+                this.monacoEditor.layout();
+            }, 100);
+        }
     }
 
     async saveCurrentFile() {
@@ -1745,8 +1767,111 @@ class CodeTrashManager {
     }
 }
 
+/**
+ * Code Area Replacer
+ * Ersetzt Textareas mit der Klasse .rex-code durch Monaco Editor
+ */
+class CodeAreaReplacer {
+    init() {
+        const areas = $('textarea.rex-code');
+        if (areas.length > 0) {
+            console.log('Found .rex-code textareas, optimizing...');
+            this.loadMonaco().then(() => {
+                this.replaceAreas(areas);
+            });
+        }
+    }
+
+    async loadMonaco() {
+        if (typeof monaco !== 'undefined') return;
+        
+        if (typeof MonacoLoader !== 'undefined') {
+            return await MonacoLoader.load();
+        }
+
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = '/assets/addons/code/monaco-loader.js';
+            script.onload = async () => {
+                try {
+                    await MonacoLoader.load();
+                    resolve();
+                } catch(e) {
+                    console.error('Monaco Load Error', e);
+                    reject(e);
+                }
+            };
+            document.head.appendChild(script);
+        });
+    }
+
+    replaceAreas(areas) {
+        areas.each((index, el) => {
+            const textarea = $(el);
+            if (textarea.data('monaco-initialized') || textarea.closest('.monaco-wrapper').length > 0) return;
+            
+            // Abmessungen und Attribute
+            const height = Math.max(textarea.height(), 400);
+            const content = textarea.val();
+            
+            // Wrapper erstellen
+            const wrapper = $('<div class="monaco-wrapper" style="position:relative; border: 1px solid #ccc;"></div>');
+            const editorContainer = $(`<div style="height: ${height}px; width: 100%;"></div>`);
+            
+            textarea.hide().after(wrapper);
+            wrapper.append(editorContainer);
+            
+            // Sprache ermitteln (Default: PHP/HTML Mix)
+            let language = 'php';
+            if (textarea.hasClass('rex-code-css')) language = 'css';
+            if (textarea.hasClass('rex-code-js')) language = 'javascript';
+            if (textarea.hasClass('rex-code-html')) language = 'html';
+            if (textarea.hasClass('rex-code-sql')) language = 'sql';
+            if (textarea.hasClass('rex-code-json')) language = 'json';
+            
+            // Editor erstellen
+            const editor = monaco.editor.create(editorContainer[0], {
+                value: content,
+                language: language,
+                theme: 'vs-dark',
+                automaticLayout: true,
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                lineNumbers: 'on',
+                wordWrap: 'on'
+            });
+
+            // Sync on Change
+            editor.onDidChangeModelContent(() => {
+                textarea.val(editor.getValue());
+                // Trigger change event on textarea for other listeners
+                textarea.trigger('change');
+            });
+
+            textarea.data('monaco-initialized', true);
+            textarea.data('monaco-instance', editor);
+            
+            // Resize Observer für responsive Anpassung
+            if (window.ResizeObserver) {
+                const resizeObserver = new ResizeObserver(() => {
+                    editor.layout();
+                });
+                resizeObserver.observe(editorContainer[0]);
+            }
+        });
+    }
+}
+
 // Global verfügbar machen
 window.CodeFileBrowser = CodeFileBrowser;
 window.CodeFileSearch = CodeFileSearch;
 window.CodeBackupManager = CodeBackupManager;
 window.CodeTrashManager = CodeTrashManager;
+window.CodeAreaReplacer = CodeAreaReplacer;
+
+// Auto-Init für Replacer
+$(document).on("rex:ready", function() {
+    if (typeof CodeAreaReplacer !== "undefined") {
+        new CodeAreaReplacer().init();
+    }
+});

@@ -105,6 +105,8 @@ class CodeApi
                     return $this->searchFiles(rex_get('term', 'string'));
                 case 'backup-list':
                     return $this->listBackups();
+                case 'backup-read':
+                    return $this->readBackup(rex_get('backup', 'string'));
                 case 'backup-restore':
                     return $this->restoreBackup(rex_post('backup', 'string'));
                 case 'backup-delete':
@@ -117,6 +119,8 @@ class CodeApi
                     return $this->createTestBackups();
                 case 'trash-list':
                     return $this->listTrash();
+                case 'trash-read':
+                    return $this->readTrash(rex_get('trash', 'string'));
                 case 'trash-restore':
                     return $this->restoreFromTrash(rex_post('trash', 'string'));
                 case 'trash-delete':
