@@ -11,6 +11,11 @@ require_once __DIR__ . '/lib/code_api.php';
 use KLXM\Code\CodeApi;
 
 if (rex::isBackend()) {
+    // Check if be_style codemirror is active
+    if (rex_plugin::get('be_style', 'codemirror')->isAvailable()) {
+        rex_view::setJsProperty('code_addon_codemirror_active', true);
+    }
+
     // CSS einbinden mit Cache-Busting (Timestamp)
     rex_view::addCssFile($this->getAssetsUrl('code-editor.css') . '?t=' . time());
     

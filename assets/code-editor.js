@@ -1773,6 +1773,12 @@ class CodeTrashManager {
  */
 class CodeAreaReplacer {
     init() {
+        // Stop if be_style codemirror is active
+        if (rex.code_addon_codemirror_active) {
+            console.log('be_style CodeMirror is active, skipping Monaco replacement for .rex-code');
+            return;
+        }
+
         const areas = $('textarea.rex-code');
         if (areas.length > 0) {
             console.log('Found .rex-code textareas, optimizing...');
