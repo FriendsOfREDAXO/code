@@ -86,28 +86,33 @@ $content = '
         </div>
     </div>
     
-    <!-- Editor Panel (initially hidden) -->
-    <div class="panel panel-default" id="editor-panel" style="display: none;">
-        <header class="panel-heading">
-            <div class="panel-title">
-                <i class="rex-icon fa-edit"></i> 
-                <span id="current-file-name">Editor</span>
-                <span id="file-status" class="badge pull-right">Gespeichert</span>
-                <div class="pull-right btn-group" style="margin-right: 10px;">
-                    <button class="btn btn-primary btn-xs" id="btn-save" title="Speichern (Ctrl+S)">
-                        <i class="rex-icon fa-save"></i> Speichern
-                    </button>
-                    <button class="btn btn-info btn-xs" id="btn-fullscreen" title="Vollbild umschalten (F11)">
-                        <i class="rex-icon fa-expand"></i>
-                    </button>
-                    <button class="btn btn-default btn-xs" id="btn-close-editor" title="Editor schließen">
-                        <i class="rex-icon fa-times"></i>
-                    </button>
+    <!-- Editor Modal -->
+    <div class="modal fade" id="code-editor-modal" tabindex="-1" role="dialog" aria-labelledby="codeEditorLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog" style="width: 90%; height: 90vh; margin: 2% auto;">
+            <div class="modal-content" style="height: 100%; display: flex; flex-direction: column;">
+                <div class="modal-header">
+                    <button type="button" class="close" id="btn-modal-close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="codeEditorLabel">
+                        <i class="rex-icon fa-edit"></i> 
+                        <span id="current-file-name">Editor</span>
+                        <span id="file-status" class="badge" style="margin-left: 10px;">Gespeichert</span>
+                    </h4>
+                </div>
+                <div class="modal-body" style="flex: 1; padding: 0; overflow: hidden; position: relative;">
+                    <div id="monaco-editor" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
+                </div>
+                <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="text-muted small">
+                        <span id="cursor-position">Ln 1, Col 1</span>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-default" id="btn-close-editor">Schließen</button>
+                        <button type="button" class="btn btn-primary" id="btn-save" title="Speichern (Ctrl+S)">
+                            <i class="rex-icon fa-save"></i> Speichern
+                        </button>
+                    </div>
                 </div>
             </div>
-        </header>
-        <div class="panel-body" style="padding: 0;">
-            <div id="monaco-editor" style="height: 600px;"></div>
         </div>
     </div>
 </div>
@@ -133,8 +138,8 @@ $content = '
 .code-breadcrumb {
     margin-bottom: 15px;
     padding: 8px 12px;
-    background-color: #f8f8f8;
-    border: 1px solid #e5e5e5;
+    background-color: transparent;
+    border: 1px solid rgba(0, 0, 0, 0.2);
     border-radius: 4px;
     font-family: monospace;
 }
@@ -155,11 +160,7 @@ $content = '
 
 /* Monaco Editor Styling */
 #monaco-editor {
-    border: 1px solid #e5e5e5;
-}
-
-.panel-body.editor-body {
-    padding: 0 !important;
+    border: 0;
 }
 
 /* File size formatting */
@@ -167,16 +168,6 @@ $content = '
     font-family: monospace;
     font-size: 0.9em;
     color: #666;
-}
-
-/* Animation for editor panel */
-#editor-panel {
-    animation: slideIn 0.3s ease-in-out;
-}
-
-@keyframes slideIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
 }
 </style>';
 

@@ -5,6 +5,7 @@ namespace KLXM\Code;
 use Exception;
 use rex_addon;
 use rex_dir;
+use rex_file;
 use rex_path;
 use rex_get;
 use rex_post;

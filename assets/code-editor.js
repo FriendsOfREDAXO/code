@@ -85,25 +85,29 @@ class CodeFileBrowser {
             this.saveCurrentFile();
         });
         
-        $('#btn-fullscreen').on('click', () => {
-            this.toggleFullscreen();
-        });
-        
-        $('#btn-close-editor').on('click', () => {
+        $('#btn-close-editor, #btn-modal-close').on('click', () => {
             this.closeEditor();
         });
         
-        // Fullscreen Keyboard Shortcut (F11)
-        $(document).on('keydown', (e) => {
-            if (e.key === 'F11' && this.monacoEditor) {
-                e.preventDefault();
-                this.toggleFullscreen();
+        // Modal Events für Layout-Refresh
+        $('#code-editor-modal').on('shown.bs.modal', () => {
+            if (this.monacoEditor) {
+                this.monacoEditor.layout();
+                this.monacoEditor.focus();
             }
-            
-            // Escape to exit fullscreen
-            if (e.key === 'Escape' && this.isFullscreen) {
-                this.toggleFullscreen();
+        });
+
+        // Verhindern dass Modal durch Escape geschlossen wird wenn Änderungen da sind
+        $('#code-editor-modal').on('hide.bs.modal', (e) => {
+            if (this.isFileModified) {
+                if (!confirm('Es gibt ungespeicherte Änderungen. Trotzdem schließen?')) {
+                    e.preventDefault();
+                    return false;
+                }
             }
+            // Wenn geschlossen wird, cleanup
+            this.currentFile = null;
+            this.setFileModified(false);
         });
         
         // File Filter
@@ -370,6 +374,16 @@ class CodeFileBrowser {
             this.loadFileList(path);
         });
         
+        // File Open (Row Click)
+        $('.file-item.code-file-editable').off('click').on('click', (e) => {
+            // Prevent if clicked on action buttons
+            if ($(e.target).closest('.btn').length > 0) {
+                return;
+            }
+            const filePath = $(e.currentTarget).data('path');
+            this.openFile(filePath);
+        });
+        
         // File Edit Buttons
         $('.edit-file-btn').off('click').on('click', (e) => {
             e.stopPropagation();
@@ -490,29 +504,11 @@ class CodeFileBrowser {
             this.saveCurrentFile();
         });
         
-        // F11 für Fullscreen (zusätzlich zu globalem Event Handler)
-        this.monacoEditor.addCommand(monaco.KeyCode.F11, () => {
-            this.toggleFullscreen();
-        });
-
         console.log('Monaco Editor created');
     }
 
     showEditor() {
-        $('#editor-panel').show();
-        
-        // Scroll to editor
-        $('html, body').animate({
-            scrollTop: $('#editor-panel').offset().top - 100
-        }, 500);
-        
-        // Layout update
-        setTimeout(() => {
-            if (this.monacoEditor) {
-                this.monacoEditor.layout();
-                this.monacoEditor.focus();
-            }
-        }, 100);
+        $('#code-editor-modal').modal('show');
     }
 
     goToLine(lineNumber) {
@@ -550,61 +546,11 @@ class CodeFileBrowser {
     }
 
     closeEditor() {
-        if (this.isFileModified) {
-            if (!confirm('Es gibt ungespeicherte Änderungen. Trotzdem schließen?')) {
-                return;
-            }
-        }
-        
-        // Fullscreen beenden falls aktiv
-        if (this.isFullscreen) {
-            this.toggleFullscreen();
-        }
-        
-        $('#editor-panel').hide();
-        this.currentFile = null;
-        this.setFileModified(false);
-        
-        if (this.monacoEditor) {
-            const model = this.monacoEditor.getModel();
-            if (model) {
-                model.dispose();
-            }
-        }
+        $('#code-editor-modal').modal('hide');
     }
     
     toggleFullscreen() {
-        const editorPanel = $('#editor-panel');
-        const fullscreenBtn = $('#btn-fullscreen');
-        const fullscreenIcon = fullscreenBtn.find('.rex-icon');
-        
-        if (!this.isFullscreen) {
-            // Fullscreen aktivieren
-            editorPanel.addClass('editor-fullscreen');
-            $('body').addClass('editor-fullscreen-active');
-            fullscreenIcon.removeClass('fa-expand').addClass('fa-compress');
-            fullscreenBtn.attr('title', 'Vollbild verlassen (ESC)');
-            this.isFullscreen = true;
-            
-            console.log('Fullscreen activated');
-        } else {
-            // Fullscreen deaktivieren
-            editorPanel.removeClass('editor-fullscreen');
-            $('body').removeClass('editor-fullscreen-active');
-            fullscreenIcon.removeClass('fa-compress').addClass('fa-expand');
-            fullscreenBtn.attr('title', 'Vollbild umschalten (F11)');
-            this.isFullscreen = false;
-            
-            console.log('Fullscreen deactivated');
-        }
-        
-        // Monaco Editor Layout neu berechnen nach Fullscreen-Wechsel
-        setTimeout(() => {
-            if (this.monacoEditor) {
-                this.monacoEditor.layout();
-                this.monacoEditor.focus();
-            }
-        }, 100);
+        // Deprecated in Modal mode
     }
 
     async saveCurrentFile() {
