@@ -48,30 +48,56 @@ $content = '
 </div>
 
 <style>
+/* Dark Mode Override for Search */
+.code-search-container .panel {
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    border: none;
+}
+
+.code-search-container .panel-heading {
+    background-color: #252526;
+    color: #cccccc;
+    border-bottom: 1px solid #333;
+    border-radius: 0;
+}
+
+.form-control {
+    background-color: #3c3c3c;
+    border: 1px solid #3c3c3c;
+    color: #cccccc;
+}
+
+.form-control:focus {
+    background-color: #3c3c3c;
+    border-color: #007fd4;
+    color: #ffffff;
+}
+
 .search-result-item {
-    border-left: 3px solid #337ab7;
+    background-color: #252526;
     padding: 0;
     margin-bottom: 15px;
-    background-color: #f9f9f9;
     border-radius: 0 4px 4px 0;
-    border: 1px solid #e5e5e5;
+    border: 1px solid #333;
 }
 
 .search-result-file-header {
-    background-color: #f5f5f5;
+    background-color: #2d2d2d;
     padding: 10px 15px;
-    border-bottom: 1px solid #e5e5e5;
+    border-bottom: 1px solid #333;
+    color: #e7e7e7;
 }
 
 .search-result-file {
     font-weight: bold;
-    color: #337ab7;
     cursor: pointer;
     margin: 0;
+    color: #569cd6; /* VS Code Blue */
 }
 
 .search-result-file:hover {
-    color: #23527c;
+    color: #9cdcfe;
 }
 
 .search-result-file strong {
@@ -80,12 +106,12 @@ $content = '
 
 .search-result-match {
     padding: 8px 15px;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid #333;
     transition: background-color 0.2s;
 }
 
 .search-result-match:hover {
-    background-color: #f0f8ff;
+    background-color: #2a2d2e;
 }
 
 .search-result-match:last-child {
@@ -94,18 +120,27 @@ $content = '
 
 .search-result-line-info {
     margin-bottom: 5px;
+    color: #858585;
 }
 
 .search-line-btn {
     font-size: 11px;
     padding: 2px 6px;
+    background-color: #0e639c;
+    border: none;
+    color: white;
+}
+
+.search-line-btn:hover {
+    background-color: #1177bb;
 }
 
 .search-result-content {
     font-family: Monaco, Consolas, "Courier New", monospace;
-    background-color: #fff;
     padding: 8px 12px;
-    border: 1px solid #ddd;
+    background-color: #1e1e1e;
+    border: 1px solid #333;
+    color: #d4d4d4;
     border-radius: 3px;
     margin-top: 5px;
     overflow-x: auto;
@@ -115,12 +150,14 @@ $content = '
 }
 
 .search-result-content:hover {
-    border-color: #337ab7;
-    box-shadow: 0 0 3px rgba(51, 122, 183, 0.3);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+    border-color: #007fd4;
+    transition: box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out;
 }
 
 .search-result-content mark {
-    background-color: #ffeb3b;
+    background-color: #264f78;
+    color: white;
     padding: 1px 2px;
     border-radius: 2px;
     font-weight: bold;
@@ -129,12 +166,14 @@ $content = '
 .search-loading {
     text-align: center;
     padding: 20px;
+    color: #cccccc;
 }
 
 .search-stats {
     padding: 10px 15px;
-    background-color: #d9edf7;
-    border: 1px solid #bce8f1;
+    border: 1px solid #333;
+    background-color: #252526;
+    color: #cccccc;
     border-radius: 4px;
     margin-bottom: 15px;
 }
@@ -142,12 +181,9 @@ $content = '
 .no-results {
     text-align: center;
     padding: 40px;
-    color: #999;
+    color: #858585;
 }
 
-.badge-primary {
-    background-color: #337ab7;
-}
 
 /* Zeilen-Highlighting im Editor */
 .highlight-line {

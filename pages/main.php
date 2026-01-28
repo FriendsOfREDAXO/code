@@ -33,23 +33,23 @@ $content = '
             <div class="panel-title">
                 <i class="rex-icon fa-code"></i> Code Editor
                 <div class="pull-right btn-group">
+                    <button class="btn btn-default btn-xs" id="btn-back" title="Zurück" disabled>
+                        <i class="rex-icon fa-arrow-left"></i>
+                    </button>
+                    <button class="btn btn-default btn-xs" id="btn-home" title="Zum Hauptverzeichnis">
+                        <i class="rex-icon fa-home"></i>
+                    </button>
+                    <button class="btn btn-default btn-xs" id="btn-refresh" title="Dateiliste aktualisieren">
+                        <i class="rex-icon fa-refresh"></i>
+                    </button>
+                    <button class="btn btn-default btn-xs" id="btn-hard-refresh" title="App-Cache leeren & Seite neu laden">
+                        <i class="rex-icon fa-eraser"></i>
+                    </button>
                     <button class="btn btn-success btn-xs" id="btn-new-file" title="Neue Datei erstellen">
                         <i class="rex-icon fa-file-o"></i> Neue Datei
                     </button>
                     <button class="btn btn-success btn-xs" id="btn-new-folder" title="Neuen Ordner erstellen">
                         <i class="rex-icon fa-folder-o"></i> Neuer Ordner
-                    </button>
-                    <button class="btn btn-default btn-xs" id="btn-refresh" title="Aktualisieren">
-                        <i class="rex-icon fa-refresh"></i>
-                    </button>
-                    <button class="btn btn-default btn-xs" id="btn-hard-refresh" title="Cache leeren & Aktualisieren">
-                        <i class="rex-icon fa-refresh"></i><i class="rex-icon fa-exclamation-triangle" style="font-size: 8px; margin-left: -3px;"></i>
-                    </button>
-                    <button class="btn btn-default btn-xs" id="btn-home" title="Zum Hauptverzeichnis">
-                        <i class="rex-icon fa-home"></i>
-                    </button>
-                    <button class="btn btn-default btn-xs" id="btn-back" title="Zurück" disabled>
-                        <i class="rex-icon fa-arrow-left"></i>
                     </button>
                 </div>
             </div>

@@ -88,46 +88,55 @@ class CodeApi
         // Bei jeder API-Nutzung den "last_used" Timestamp aktualisieren
         rex_config::set('code', 'last_used_time', time());
         
-        switch ($action) {
-            case 'list':
-                return $this->listFiles(rex_get('path', 'string', ''));
-            case 'read':
-                return $this->readFile(rex_get('file', 'string'));
-            case 'save':
-                $filePath = rex_post('file', 'string');
-                $content = rex_post('content', 'string');
-                error_log("Code Editor API - Save parameters: file='" . $filePath . "', content_length=" . strlen($content));
-                return $this->saveFile($filePath, $content);
-            case 'delete':
-                return $this->deleteFile(rex_post('file', 'string'));
-            case 'search':
-                return $this->searchFiles(rex_get('term', 'string'));
-            case 'backup-list':
-                return $this->listBackups();
-            case 'backup-restore':
-                return $this->restoreBackup(rex_post('backup', 'string'));
-            case 'backup-delete':
-                return $this->deleteBackup(rex_post('backup', 'string'));
-            case 'backup-cleanup':
-                return $this->cleanupBackups();
-            case 'backup-delete-all':
-                return $this->deleteAllBackups();
-            case 'backup-test':
-                return $this->createTestBackups();
-            case 'trash-list':
-                return $this->listTrash();
-            case 'trash-restore':
-                return $this->restoreFromTrash(rex_post('trash', 'string'));
-            case 'trash-delete':
-                return $this->deleteFromTrash(rex_post('trash', 'string'));
-            case 'trash-empty':
-                return $this->emptyTrash();
-            case 'create':
-                return $this->createFile(rex_post('path', 'string'), rex_post('name', 'string'), rex_post('type', 'string', 'file'));
-            case 'copy':
-                return $this->copyFile(rex_post('file', 'string'), rex_post('newName', 'string', ''));
-            default:
-                throw new Exception('Unknown action: ' . $action);
+        try {
+            switch ($action) {
+                case 'list':
+                    return $this->listFiles(rex_get('path', 'string', ''));
+                case 'read':
+                    return $this->readFile(rex_get('file', 'string'));
+                case 'save':
+                    $filePath = rex_post('file', 'string');
+                    $content = rex_post('content', 'string');
+                    error_log("Code Editor API - Save parameters: file='" . $filePath . "', content_length=" . strlen($content));
+                    return $this->saveFile($filePath, $content);
+                case 'delete':
+                    return $this->deleteFile(rex_post('file', 'string'));
+                case 'search':
+                    return $this->searchFiles(rex_get('term', 'string'));
+                case 'backup-list':
+                    return $this->listBackups();
+                case 'backup-restore':
+                    return $this->restoreBackup(rex_post('backup', 'string'));
+                case 'backup-delete':
+                    return $this->deleteBackup(rex_post('backup', 'string'));
+                case 'backup-cleanup':
+                    return $this->cleanupBackups();
+                case 'backup-delete-all':
+                    return $this->deleteAllBackups();
+                case 'backup-test':
+                    return $this->createTestBackups();
+                case 'trash-list':
+                    return $this->listTrash();
+                case 'trash-restore':
+                    return $this->restoreFromTrash(rex_post('trash', 'string'));
+                case 'trash-delete':
+                    return $this->deleteFromTrash(rex_post('trash', 'string'));
+                case 'trash-empty':
+                    return $this->emptyTrash();
+                case 'create':
+                    return $this->createFile(rex_post('path', 'string'), rex_post('name', 'string'), rex_post('type', 'string', 'file'));
+                case 'copy':
+                    return $this->copyFile(rex_post('file', 'string'), rex_post('newName', 'string', ''));
+                default:
+                    throw new Exception('Unknown action: ' . $action);
+            }
+        } catch (\Throwable $e) {
+            error_log("Code Editor API Error: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
         }
     }
 
@@ -917,7 +926,7 @@ class CodeApi
                     return ['success' => false, 'error' => 'Fehler beim Erstellen der Datei'];
                 }
             }
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             error_log("Code Editor - Create failed: " . $e->getMessage());
             return ['success' => false, 'error' => 'Erstellen fehlgeschlagen: ' . $e->getMessage()];
         }
