@@ -1832,6 +1832,61 @@ class CodeAreaReplacer {
         });
     }
 
+    getSnippets() {
+        return {
+            'Module': {
+                'Value 1': 'REX_VALUE[1]',
+                'Value 2': 'REX_VALUE[2]',
+                'Value Output (HTML)': 'REX_VALUE[id=1 output=html]',
+                'Media 1': 'REX_MEDIA[1]',
+                'Link 1': 'REX_LINK[1]',
+                'Linklist 1': 'REX_LINKLIST[1]',
+                'Is Value Set?': 'if ("REX_VALUE[1]" != "") {\n    \n}'
+            },
+            'REDAXO Core': {
+                'Current Article ID': 'rex_article::getCurrentId()',
+                'Current Language ID': 'rex_clang::getCurrentId()',
+                'Current User': '$user = rex::getUser();',
+                'Is Backend?': 'if (rex::isBackend()) {\n    \n}',
+                'Table Prefix': 'rex::getTablePrefix()',
+                'Server URL': 'rex::getServer()',
+                'Frontend Path': 'rex_path::frontend()',
+                'Media Path': 'rex_path::media()',
+                'Assets URI': 'rex_url::assets()',
+                'Media URI': 'rex_url::media()',
+                'DB Query': '$sql = rex_sql::factory();\n$sql->setQuery("SELECT * FROM " . rex::getTable("article") . " WHERE id = :id", ["id" => 1]);',
+                'Escape HTML': 'rex_escape($string)'
+            },
+            'Slice Values (PHP)': {
+                'Get Slice by ID': '$slice = rex_article_slice::getArticleSliceById($id);',
+                'Value 1': '$slice->getValue(1)',
+                'Media 1': '$slice->getMedia(1)',
+                'MediaList 1': '$slice->getMediaList(1)',
+                'Link 1': '$slice->getLink(1)',
+                'LinkList 1': '$slice->getLinkList(1)'
+            },
+            'Template': {
+                'Article Content': 'echo $this->getArticle();',
+                'Template Title': 'echo rex_view::title(rex_article::getCurrent()->getName());',
+                'Include File': 'include rex_path::assets(\'addons/project/file.php\');'
+            },
+            'MForm': {
+                'Init': 'use FriendsOfRedaxo\\MForm\\MForm;\n\n$mform = MForm::factory();\n// Fields...\necho $mform->show();',
+                'Text Input': '$mform->addTextField(1, [\'label\' => \'Label\']);',
+                'Textarea': '$mform->addTextAreaField(2, [\'label\' => \'Label\']);',
+                'Media Button': '$mform->addMediaField(1, [\'label\' => \'Image\']);',
+                'Link Button': '$mform->addLinkField(1, [\'label\' => \'Link\']);',
+                'Select': '$mform->addSelectField(1, [\'opt1\' => \'Option 1\'], [\'label\' => \'Select\']);',
+                'Checkbox': '$mform->addCheckboxField(1, [1 => \'Active\'], [\'label\' => \'Checkbox\']);',
+                'Repeater (New)': '$mform->addRepeaterElement(1, function(MForm $mform) {\n    $mform->addTextField(\'text\', [\'label\' => \'Text\']);\n    $mform->addMediaField(\'media\', [\'label\' => \'Bild\']);\n});'
+            },
+            'MBlock': {
+                'Show': 'echo \FriendsOfRedaxo\MBlock\MBlock::show(1, \'module_key\');',
+                'Config Example': 'echo \FriendsOfRedaxo\MBlock\MBlock::show(1, \'module_key\', [\'min\' => 1, \'max\' => 10]);'
+            }
+        };
+    }
+
     replaceAreas(areas) {
         areas.each((index, el) => {
             const textarea = $(el);
@@ -1842,22 +1897,66 @@ class CodeAreaReplacer {
             const content = textarea.val();
             
             // Wrapper erstellen
-            const wrapper = $('<div class="monaco-wrapper" style="position:relative; border: 1px solid #c1c9d4;"></div>');
+            // Check for Dark Mode (various REDAXO themes)
+            const isDark = $('body').hasClass('rex-theme-dark') || $('body').hasClass('rex-is-dark') || window.matchMedia('(prefers-color-scheme: dark)').matches;
+            
+            const toolbarBg = isDark ? '#323e4e' : '#f0f4f9'; // REDAXO Dark colors or light variant
+            const toolbarBorder = isDark ? '#3b4351' : '#c1c9d4';
+            const selectBg = isDark ? '#20262e' : '#ffffff';
+            const selectColor = isDark ? '#dfe3e9' : '#333333';
+
+            const wrapper = $('<div class="monaco-wrapper" style="position:relative; z-index: 10; border: 1px solid ' + toolbarBorder + ';"></div>');
+            
             const toolbar = $(`
-                <div class="monaco-toolbar" style="background: #f0f4f9; padding: 5px; border-bottom: 1px solid #c1c9d4; display: flex; justify-content: flex-end;">
-                    <select class="form-control input-sm theme-switcher" style="height: 22px; padding: 0 5px; font-size: 12px; width: auto;">
-                        <option value="vs-dark">Dark</option>
-                        <option value="vs">Light</option>
-                        <option value="hc-black">High Contrast</option>
-                    </select>
+                <div class="monaco-toolbar" style="background: ${toolbarBg}; padding: 5px 10px; border-bottom: 1px solid ${toolbarBorder}; display: flex; justify-content: space-between; align-items: center;">
+                    
+                    <div style="flex: 1; display: flex; align-items: center; gap: 10px;">
+                        <select class="form-control input-sm snippet-selector" style="height: 24px; padding: 0 5px; font-size: 11px; width: auto; max-width: 200px; background-color: ${selectBg}; color: ${selectColor}; border-color: ${toolbarBorder};">
+                            <option value="">Snippets...</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <button type="button" class="btn btn-default btn-xs action-format" title="Format Code" style="background: ${selectBg}; color: ${selectColor}; border-color: ${toolbarBorder}; height: 24px; padding: 0 8px;">
+                            <i class="rex-icon fa-align-left"></i>
+                        </button>
+                        <button type="button" class="btn btn-default btn-xs action-fullscreen" title="Fullscreen" style="background: ${selectBg}; color: ${selectColor}; border-color: ${toolbarBorder}; height: 24px; padding: 0 8px;">
+                            <i class="rex-icon fa-expand"></i>
+                        </button>
+                        
+                        <div style="border-left: 1px solid ${toolbarBorder}; height: 16px; margin: 0 5px; opacity: 0.5;"></div>
+
+                        <span style="font-size: 11px; margin-right: 5px; color: ${selectColor}; opacity: 0.7;">Theme:</span>
+                        <select class="form-control input-sm theme-switcher" style="height: 24px; padding: 0 5px; font-size: 12px; width: auto; background-color: ${selectBg}; color: ${selectColor}; border-color: ${toolbarBorder};">
+                            <option value="vs-dark">Dark</option>
+                            <option value="vs">Light</option>
+                            <option value="hc-black">High Contrast</option>
+                        </select>
+                    </div>
                 </div>
             `);
             const editorContainer = $(`<div style="height: ${height}px; width: 100%;"></div>`);
             
+            console.log('Inserting Monaco Toolbar and Editor for', textarea);
+
             textarea.hide().after(wrapper);
             wrapper.append(toolbar);
             wrapper.append(editorContainer);
             
+            // Populate Snippets
+            const snippets = this.getSnippets();
+            const snippetSelect = toolbar.find('.snippet-selector');
+            Object.keys(snippets).forEach(category => {
+                const group = $('<optgroup label="' + category + '"></optgroup>');
+                Object.keys(snippets[category]).forEach(name => {
+                    group.append($('<option>', {
+                        value: snippets[category][name],
+                        text: name
+                    }));
+                });
+                snippetSelect.append(group);
+            });
+
             // Theme initial setzen in Select
             const currentTheme = localStorage.getItem('rex_code_theme') || 'vs-dark';
             toolbar.find('select').val(currentTheme);
@@ -1883,12 +1982,50 @@ class CodeAreaReplacer {
             });
 
             // Theme Switcher Event
-            toolbar.find('select').on('change', (e) => {
+            toolbar.find('.theme-switcher').on('change', (e) => {
                 const newTheme = e.target.value;
                 localStorage.setItem('rex_code_theme', newTheme);
                 monaco.editor.setTheme(newTheme);
                 // Update all other switchers
-                $('.monaco-toolbar select').val(newTheme);
+                $('.monaco-toolbar .theme-switcher').val(newTheme);
+            });
+
+            // Snippet Insert Event
+            toolbar.find('.snippet-selector').on('change', (e) => {
+                const text = e.target.value;
+                if (!text) return;
+
+                const position = editor.getPosition();
+                editor.executeEdits('snippet', [{
+                    range: new monaco.Range(position.lineNumber, position.column, position.lineNumber, position.column),
+                    text: text,
+                    forceMoveMarkers: true
+                }]);
+                
+                editor.focus();
+                // Reset select
+                $(e.target).val('');
+            });
+
+            // Fullscreen Toggle
+            toolbar.find('.action-fullscreen').on('click', () => {
+                wrapper.toggleClass('monaco-fullscreen');
+                editor.layout();
+                
+                // Toggle Icon
+                const icon = toolbar.find('.action-fullscreen i');
+                if (wrapper.hasClass('monaco-fullscreen')) {
+                    icon.removeClass('fa-expand').addClass('fa-compress');
+                    $('body').css('overflow', 'hidden'); // Prevent body scroll
+                } else {
+                    icon.removeClass('fa-compress').addClass('fa-expand');
+                    $('body').css('overflow', '');
+                }
+            });
+
+            // Format Code
+            toolbar.find('.action-format').on('click', () => {
+                editor.trigger('anyString', 'editor.action.formatDocument');
             });
 
             // Sync on Change

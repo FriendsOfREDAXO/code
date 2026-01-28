@@ -269,3 +269,22 @@
 body.editor-fullscreen-active {
     overflow: hidden !important;
 }
+
+/* Monaco Fullscreen Override */
+.monaco-wrapper.monaco-fullscreen {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 10000;
+    background: #1e1e1e;
+}
+
+.monaco-wrapper.monaco-fullscreen .monaco-toolbar {
+    border-radius: 0;
+}
+
+body.rex-theme-light .monaco-wrapper.monaco-fullscreen {
+    background: #ffffff;
+}

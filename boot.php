@@ -16,11 +16,11 @@ if (rex::isBackend()) {
         rex_view::setJsProperty('code_addon_codemirror_active', true);
     }
 
-    // CSS einbinden mit Cache-Busting (Timestamp)
-    rex_view::addCssFile($this->getAssetsUrl('code-editor.css') . '?t=' . time());
+    // CSS einbinden mit Cache-Busting (Force Timestamp Update v2)
+    rex_view::addCssFile($this->getAssetsUrl('code-editor.css') . '?t=' . (time() + 1));
     
-    // JavaScript einbinden mit Cache-Busting (Timestamp)
-    rex_view::addJsFile($this->getAssetsUrl('code-editor.js') . '?t=' . time());
+    // JavaScript einbinden mit Cache-Busting (Force Timestamp Update v2)
+    rex_view::addJsFile($this->getAssetsUrl('code-editor.js') . '?t=' . (time() + 1));
 }
 
 // API Endpoints registrieren
