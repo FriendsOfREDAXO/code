@@ -36,8 +36,8 @@ class CodeFileBrowser {
         }
     }
 
-    async init() {
-        console.log('CodeFileBrowser initializing...');
+    async init(startPath = '') {
+        console.log('CodeFileBrowser initializing with path:', startPath);
         
         // Event Listeners binden
         this.bindEvents();
@@ -46,7 +46,7 @@ class CodeFileBrowser {
         await this.loadMonacoEditor();
         
         // Erste Dateiliste laden
-        this.loadFileList('');
+        this.loadFileList(startPath);
     }
 
     bindEvents() {
@@ -87,6 +87,10 @@ class CodeFileBrowser {
         
         $('#btn-close-editor, #btn-modal-close').on('click', () => {
             this.closeEditor();
+        });
+        
+        $('#btn-modal-fullscreen').on('click', () => {
+            this.toggleFullscreen();
         });
         
         // Modal Events für Layout-Refresh

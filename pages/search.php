@@ -48,140 +48,168 @@ $content = '
 </div>
 
 <style>
-/* Dark Mode Override for Search */
-.code-search-container .panel {
-    background-color: #1e1e1e;
-    color: #d4d4d4;
-    border: none;
-}
-
+/* Force Dark Mode Override for Search with higher specificity */
+.code-search-container,
+.code-search-container .panel,
+.code-search-container .panel-default,
+.code-search-container .panel-body,
 .code-search-container .panel-heading {
-    background-color: #252526;
-    color: #cccccc;
-    border-bottom: 1px solid #333;
-    border-radius: 0;
+    background-color: #1e1e1e !important;
+    border-color: #333 !important;
+    color: #d4d4d4 !important;
 }
 
-.form-control {
-    background-color: #3c3c3c;
-    border: 1px solid #3c3c3c;
-    color: #cccccc;
+/* Remove white backgrounds from panels */
+.code-search-container .panel-default > .panel-heading {
+    background-color: #252526 !important;
+    border-bottom: 1px solid #333 !important;
+    color: #cccccc !important;
 }
 
-.form-control:focus {
-    background-color: #3c3c3c;
-    border-color: #007fd4;
-    color: #ffffff;
+/* Form Inputs */
+.code-search-container .form-control {
+    background-color: #3c3c3c !important;
+    border: 1px solid #3c3c3c !important;
+    color: #cccccc !important;
+    box-shadow: none !important;
+}
+
+.code-search-container .form-control:focus {
+    background-color: #3c3c3c !important;
+    border-color: #007fd4 !important;
+    color: #ffffff !important;
+}
+
+/* Buttons */
+.code-search-container .btn-primary {
+    background-color: #0e639c !important;
+    border-color: #0e639c !important;
+    color: #ffffff !important;
+}
+
+.code-search-container .btn-primary:hover {
+    background-color: #1177bb !important;
+}
+
+.code-search-container .btn-success {
+    background-color: #388a34 !important; /* VS Code Green */
+    border-color: #388a34 !important;
+}
+
+/* Search Results Wrapper */
+#search-results-content {
+    background-color: #1e1e1e !important;
 }
 
 .search-result-item {
-    background-color: #252526;
+    background-color: #252526 !important;
     padding: 0;
     margin-bottom: 15px;
-    border-radius: 0 4px 4px 0;
-    border: 1px solid #333;
+    border-radius: 4px;
+    border: 1px solid #333 !important;
+    box-shadow: none !important;
 }
 
 .search-result-file-header {
-    background-color: #2d2d2d;
+    background-color: #2d2d2d !important;
     padding: 10px 15px;
-    border-bottom: 1px solid #333;
-    color: #e7e7e7;
+    border-bottom: 1px solid #333 !important;
+    color: #e7e7e7 !important;
+    border-radius: 4px 4px 0 0;
 }
 
 .search-result-file {
     font-weight: bold;
     cursor: pointer;
     margin: 0;
-    color: #569cd6; /* VS Code Blue */
+    color: #569cd6 !important; /* VS Code Blue */
 }
 
 .search-result-file:hover {
-    color: #9cdcfe;
-}
-
-.search-result-file strong {
-    font-size: 14px;
+    color: #9cdcfe !important;
 }
 
 .search-result-match {
-    padding: 8px 15px;
-    border-bottom: 1px solid #333;
+    background-color: #1e1e1e !important; /* Force dark background */
+    padding: 10px 15px;
+    border-bottom: 1px solid #333 !important;
     transition: background-color 0.2s;
 }
 
 .search-result-match:hover {
-    background-color: #2a2d2e;
+    background-color: #2a2d2e !important;
 }
 
 .search-result-match:last-child {
-    border-bottom: none;
+    border-bottom: none !important;
+    border-radius: 0 0 4px 4px;
 }
 
-.search-result-line-info {
-    margin-bottom: 5px;
-    color: #858585;
-}
-
+/* Line Number "Badge" */
 .search-line-btn {
     font-size: 11px;
     padding: 2px 6px;
-    background-color: #0e639c;
-    border: none;
-    color: white;
+    background-color: #2d2d2d !important;
+    border: 1px solid #444 !important;
+    color: #cccccc !important;
+    border-radius: 3px;
+    font-family: monospace;
 }
 
 .search-line-btn:hover {
-    background-color: #1177bb;
+    background-color: #0e639c !important;
+    color: #fff !important;
+    border-color: #0e639c !important;
 }
 
+/* Code Snippet */
 .search-result-content {
-    font-family: Monaco, Consolas, "Courier New", monospace;
+    font-family: "Menlo", "Monaco", "Courier New", monospace;
     padding: 8px 12px;
-    background-color: #1e1e1e;
-    border: 1px solid #333;
-    color: #d4d4d4;
+    background-color: #1e1e1e !important; /* Matches main bg */
+    border: 1px solid #333 !important;
+    color: #d4d4d4 !important;
     border-radius: 3px;
     margin-top: 5px;
     overflow-x: auto;
     cursor: pointer;
     font-size: 12px;
-    line-height: 1.4;
+    line-height: 1.5;
 }
 
 .search-result-content:hover {
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
-    border-color: #007fd4;
-    transition: box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out;
+    border-color: #007fd4 !important;
+    box-shadow: 0 0 8px rgba(0, 127, 212, 0.45) !important;
 }
 
 .search-result-content mark {
-    background-color: #264f78;
-    color: white;
-    padding: 1px 2px;
+    background-color: #264f78 !important; /* VS Code Selection/Find Match Color */
+    color: #d4d4d4 !important; 
+    padding: 0 2px;
     border-radius: 2px;
-    font-weight: bold;
+    font-weight: normal;
 }
 
-.search-loading {
-    text-align: center;
-    padding: 20px;
-    color: #cccccc;
-}
-
+/* Stats Box */
 .search-stats {
     padding: 10px 15px;
-    border: 1px solid #333;
-    background-color: #252526;
-    color: #cccccc;
+    border: 1px solid #007fd4 !important;
+    background-color: #1e1e1e !important;
+    color: #d4d4d4 !important;
+    border-left-width: 4px !important;
     border-radius: 4px;
     margin-bottom: 15px;
+}
+
+/* Info Icon in Stats */
+.search-stats .fa {
+    color: #007fd4;
 }
 
 .no-results {
     text-align: center;
     padding: 40px;
-    color: #858585;
+    color: #858585 !important;
 }
 
 

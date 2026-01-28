@@ -92,6 +92,7 @@ $content = '
             <div class="modal-content" style="height: 100%; display: flex; flex-direction: column;">
                 <div class="modal-header">
                     <button type="button" class="close" id="btn-modal-close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <button type="button" class="close" id="btn-modal-fullscreen" style="margin-right: 10px; font-size: 18px;" title="Vollbild umschalten"><i class="rex-icon fa-expand"></i></button>
                     <h4 class="modal-title" id="codeEditorLabel">
                         <i class="rex-icon fa-edit"></i> 
                         <span id="current-file-name">Editor</span>
@@ -158,6 +159,37 @@ $content = '
     color: #999;
 }
 
+/* Fullscreen Modal */
+.modal-fullscreen .modal-dialog {
+    width: 100% !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+}
+
+.modal-fullscreen .modal-content {
+    height: 100% !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+}
+
+/* Dark Mode Table Overrides */
+.code-editor-container .table > thead > tr > th {
+    background-color: transparent !important;
+    border-bottom: 1px solid rgba(0,0,0,0.1) !important;
+    color: #888;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+}
+
+.code-editor-container .table > tbody > tr > td {
+    border-top: 1px solid rgba(0,0,0,0.05) !important;
+    vertical-align: middle;
+}
+
 /* Monaco Editor Styling */
 #monaco-editor {
     border: 0;
@@ -181,12 +213,23 @@ echo '<script>
 $(document).on("rex:ready", function() {
     if (typeof CodeFileBrowser !== "undefined") {
         window.codeEditor = new CodeFileBrowser();
-        window.codeEditor.init();
         
         // Datei direkt öffnen wenn über URL-Parameter übergeben
         const urlParams = new URLSearchParams(window.location.search);
         const openFile = urlParams.get("open_file");
         const gotoLine = urlParams.get("line");
+        
+        // Startverzeichnis bestimmen
+        let startPath = "";
+        if (openFile) {
+            const lastSlash = openFile.lastIndexOf("/");
+            if (lastSlash !== -1) {
+                startPath = openFile.substring(0, lastSlash);
+            }
+        }
+        
+        // Editor und Browser mit korrektem Pfad initialisieren
+        window.codeEditor.init(startPath);
         
         if (openFile) {
             setTimeout(() => {
