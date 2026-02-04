@@ -1881,7 +1881,8 @@ class CodeAreaReplacer {
             const toolbar = $(`
                 <div class="monaco-toolbar" style="background: ${toolbarBg}; padding: 5px 10px; border-bottom: 1px solid ${toolbarBorder}; display: flex; justify-content: space-between; align-items: center;">
                     
-                    <div style="flex: 1; display: flex; align-items: center; gap: 10px;">
+                    <div style="flex: 1; display: flex; align-items: center; gap: 5px;">
+                        <input type="text" class="form-control input-sm snippet-search" placeholder="Suche..." style="height: 24px; padding: 0 5px; font-size: 11px; width: 100px; background-color: ${selectBg}; color: ${selectColor}; border-color: ${toolbarBorder};">
                         <select class="form-control input-sm snippet-selector" style="height: 24px; padding: 0 5px; font-size: 11px; width: auto; max-width: 200px; background-color: ${selectBg}; color: ${selectColor}; border-color: ${toolbarBorder};">
                             <option value="">Snippets...</option>
                         </select>
@@ -1890,9 +1891,6 @@ class CodeAreaReplacer {
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <button type="button" class="btn btn-default btn-xs action-format" title="Format Code" style="background: ${selectBg}; color: ${selectColor}; border-color: ${toolbarBorder}; height: 24px; padding: 0 8px;">
                             <i class="rex-icon fa-align-left"></i>
-                        </button>
-                        <button type="button" class="btn btn-default btn-xs action-fullscreen" title="Fullscreen" style="background: ${selectBg}; color: ${selectColor}; border-color: ${toolbarBorder}; height: 24px; padding: 0 8px;">
-                            <i class="rex-icon fa-expand"></i>
                         </button>
                         
                         <div style="border-left: 1px solid ${toolbarBorder}; height: 16px; margin: 0 5px; opacity: 0.5;"></div>
@@ -1906,7 +1904,7 @@ class CodeAreaReplacer {
                     </div>
                 </div>
             `);
-            const editorContainer = $(`<div style="height: ${height}px; width: 100%;"></div>`);
+            const editorContainer = $(`<div class="monaco-editor-container" style="height: ${height}px; width: 100%;"></div>`);
             
             console.log('Inserting Monaco Toolbar and Editor for', textarea);
 
@@ -1917,20 +1915,41 @@ class CodeAreaReplacer {
             // Populate Snippets
             const snippets = this.getSnippets();
             const snippetSelect = toolbar.find('.snippet-selector');
-            Object.keys(snippets).forEach(category => {
-                const group = $('<optgroup label="' + category + '"></optgroup>');
-                Object.keys(snippets[category]).forEach(name => {
-                    group.append($('<option>', {
-                        value: snippets[category][name],
-                        text: name
-                    }));
+            
+            const renderSnippets = (filter = '') => {
+                snippetSelect.empty();
+                snippetSelect.append('<option value="">Snippets...</option>');
+                const term = filter.toLowerCase();
+
+                Object.keys(snippets).forEach(category => {
+                    const group = $('<optgroup label="' + category + '"></optgroup>');
+                    let hasOptions = false;
+
+                    Object.keys(snippets[category]).forEach(name => {
+                        if (name.toLowerCase().includes(term) || category.toLowerCase().includes(term)) {
+                            group.append($('<option>', {
+                                value: snippets[category][name],
+                                text: name
+                            }));
+                            hasOptions = true;
+                        }
+                    });
+                    
+                    if (hasOptions) {
+                        snippetSelect.append(group);
+                    }
                 });
-                snippetSelect.append(group);
+            };
+
+            renderSnippets();
+
+            toolbar.find('.snippet-search').on('input', function() {
+                renderSnippets($(this).val());
             });
 
             // Theme initial setzen in Select
             const currentTheme = localStorage.getItem('rex_code_theme') || 'vs-dark';
-            toolbar.find('select').val(currentTheme);
+            toolbar.find('.theme-switcher').val(currentTheme);
 
             // Sprache ermitteln (Default: PHP/HTML Mix)
             let language = 'php';

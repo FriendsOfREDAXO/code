@@ -279,6 +279,14 @@ body.editor-fullscreen-active {
     height: 100% !important;
     z-index: 10000;
     background: #1e1e1e;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.monaco-wrapper.monaco-fullscreen .monaco-editor-container {
+    flex: 1 !important;
+    height: auto !important;
+    width: 100% !important;
 }
 
 .monaco-wrapper.monaco-fullscreen .monaco-toolbar {
