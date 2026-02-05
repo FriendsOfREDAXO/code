@@ -57,6 +57,21 @@ $content = '
         <div class="panel-body">
             <div id="current-path-breadcrumb" class="code-breadcrumb"></div>
             
+            <!-- Favorites Bar -->
+            <div id="favorites-bar" style="margin-bottom: 15px; padding: 8px; background: #f0f4f9; border-radius: 4px; border: 1px solid #c1c9d4;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div style="flex: 1;">
+                        <strong style="font-size: 11px; color: #666; margin-right: 10px;">
+                            <i class="rex-icon fa-star"></i> Favoriten:
+                        </strong>
+                        <span id="favorites-list" style="display: inline-block;"></span>
+                    </div>
+                    <button class="btn btn-xs btn-default" id="btn-add-favorite" title="Aktuellen Ordner zu Favoriten hinzufügen">
+                        <i class="rex-icon fa-star-o"></i> Hinzufügen
+                    </button>
+                </div>
+            </div>
+            
             <!-- File Filter -->
             <div class="form-group">
                 <input type="text" id="file-filter" class="form-control" placeholder="Dateien filtern...">
@@ -93,6 +108,7 @@ $content = '
                 <div class="modal-header">
                     <button type="button" class="close" id="btn-modal-close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                     <button type="button" class="close" id="btn-modal-fullscreen" style="margin-right: 10px; font-size: 18px;" title="Vollbild umschalten"><i class="rex-icon fa-expand"></i></button>
+                    <button type="button" class="close" id="btn-toggle-snippets" style="margin-right: 10px; font-size: 18px;" title="Snippets ein/ausblenden"><i class="rex-icon fa-code"></i></button>
                    
                     <div style="float: right; margin-right: 15px; margin-top: 1px;">
                         <label style="display: inline-block; margin-right: 5px; font-size: 11px; font-weight: normal;">Größe:</label>
@@ -122,8 +138,14 @@ $content = '
                         <span id="file-status" class="badge" style="margin-left: 10px;">Gespeichert</span>
                     </h4>
                 </div>
-                <div class="modal-body" style="flex: 1; padding: 0; overflow: hidden; position: relative;">
-                    <div id="monaco-editor" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
+                <div class="modal-body" style="flex: 1; padding: 0; overflow: hidden; position: relative; display: flex;">
+                    <div id="snippets-sidebar" style="width: 300px; border-right: 1px solid #ddd; background: #f8f9fa; overflow-y: auto; display: none; flex-shrink: 0;">
+                        <div style="padding: 10px; border-bottom: 1px solid #ddd; position: sticky; top: 0; background: #f8f9fa; z-index: 10;">
+                            <input type="text" id="snippet-search" class="form-control input-sm" placeholder="Snippets durchsuchen..." style="margin-bottom: 5px;">
+                        </div>
+                        <div id="snippets-list" style="padding: 10px;"></div>
+                    </div>
+                    <div id="monaco-editor" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; transition: left 0.3s, width 0.3s;"></div>
                 </div>
                 <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
                     <div class="text-muted small">
@@ -224,6 +246,95 @@ $content = '
     font-size: 0.9em;
     color: #666;
 }
+
+/* Snippets Sidebar */
+#snippets-sidebar.visible {
+    display: block !important;
+}
+
+#monaco-editor.with-sidebar {
+    left: 300px !important;
+    width: calc(100% - 300px) !important;
+}
+
+.snippet-category {
+    margin-bottom: 15px;
+}
+
+.snippet-category-title {
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 8px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #ddd;
+}
+
+.snippet-item {
+    padding: 6px 10px;
+    margin-bottom: 3px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+}
+
+.snippet-item:hover {
+    background: #e3f2fd;
+    border-color: #2196f3;
+    transform: translateX(2px);
+}
+
+.snippet-item-name {
+    font-weight: 500;
+    color: #333;
+}
+
+.snippet-item-preview {
+    font-size: 10px;
+    color: #999;
+    font-family: monospace;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Favorites */
+.favorite-item {
+    display: inline-block;
+    padding: 3px 8px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.favorite-item:hover {
+    background: #e3f2fd;
+    border-color: #2196f3;
+}
+
+.favorite-item .rex-icon {
+    margin-right: 3px;
+}
+
+.favorite-item .remove-favorite {
+    margin-left: 5px;
+    color: #999;
+    cursor: pointer;
+}
+
+.favorite-item .remove-favorite:hover {
+    color: #d32f2f;
+}
 </style>';
 
 // Fragment erstellen und ausgeben
@@ -235,7 +346,7 @@ echo $fragment->parse('core/page/section.php');
 echo '<script>
 $(document).on("rex:ready", function() {
     if (typeof CodeFileBrowser !== "undefined") {
-        window.codeEditor = new CodeFileBrowser();
+        window.codeFileBrowser = new CodeFileBrowser();
         
         // Datei direkt öffnen wenn über URL-Parameter übergeben
         const urlParams = new URLSearchParams(window.location.search);
@@ -252,17 +363,17 @@ $(document).on("rex:ready", function() {
         }
         
         // Editor und Browser mit korrektem Pfad initialisieren
-        window.codeEditor.init(startPath);
+        window.codeFileBrowser.init(startPath);
         
         if (openFile) {
             setTimeout(() => {
-                window.codeEditor.openFile(openFile).then(() => {
+                window.codeFileBrowser.openFile(openFile).then(() => {
                     // Nach dem Öffnen zur Zeile springen
-                    if (gotoLine && window.codeEditor.monacoEditor) {
+                    if (gotoLine && window.codeFileBrowser.monacoEditor) {
                         const lineNum = parseInt(gotoLine);
                         if (lineNum > 0) {
                             setTimeout(() => {
-                                window.codeEditor.goToLine(lineNum);
+                                window.codeFileBrowser.goToLine(lineNum);
                             }, 500);
                         }
                     }
