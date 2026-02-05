@@ -181,6 +181,21 @@ $content = '
                             <option value="vs">VS Light</option>
                             <option value="hc-black">High Contrast</option>
                         </select>
+                        
+                        <span style="display: inline-block; width: 1px; height: 16px; background: rgba(255,255,255,0.3); margin: 0 10px;"></span>
+                        
+                        <button type="button" id="toggle-line-numbers" class="btn btn-xs btn-default" title="Zeilennummern ein/aus" style="height: 22px; padding: 2px 8px;">
+                            <i class="rex-icon fa-list-ol"></i>
+                        </button>
+                        <button type="button" id="toggle-word-wrap" class="btn btn-xs btn-default" title="Zeilenumbruch ein/aus" style="height: 22px; padding: 2px 8px;">
+                            <i class="rex-icon fa-align-left"></i>
+                        </button>
+                        <button type="button" id="toggle-minimap" class="btn btn-xs btn-default" title="Minimap ein/aus" style="height: 22px; padding: 2px 8px;">
+                            <i class="rex-icon fa-map"></i>
+                        </button>
+                        <button type="button" id="toggle-whitespace" class="btn btn-xs btn-default" title="Whitespace anzeigen" style="height: 22px; padding: 2px 8px;">
+                            <i class="rex-icon fa-paragraph"></i>
+                        </button>
                     </div>
 
                     <h4 class="modal-title" id="codeEditorLabel">
