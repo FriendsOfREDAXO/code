@@ -95,6 +95,20 @@ $content = '
                     <button type="button" class="close" id="btn-modal-fullscreen" style="margin-right: 10px; font-size: 18px;" title="Vollbild umschalten"><i class="rex-icon fa-expand"></i></button>
                    
                     <div style="float: right; margin-right: 15px; margin-top: 1px;">
+                        <label style="display: inline-block; margin-right: 5px; font-size: 11px; font-weight: normal;">Größe:</label>
+                        <select id="fontsize-switcher" class="form-control input-sm" style="height: 22px; padding: 0 5px; font-size: 12px; width: auto; display: inline-block; margin-right: 10px;">
+                            <option value="10">10px</option>
+                            <option value="11">11px</option>
+                            <option value="12">12px</option>
+                            <option value="13">13px</option>
+                            <option value="14" selected>14px</option>
+                            <option value="15">15px</option>
+                            <option value="16">16px</option>
+                            <option value="18">18px</option>
+                            <option value="20">20px</option>
+                            <option value="22">22px</option>
+                        </select>
+                        <label style="display: inline-block; margin-right: 5px; font-size: 11px; font-weight: normal;">Theme:</label>
                         <select id="theme-switcher" class="form-control input-sm" style="height: 22px; padding: 0 5px; font-size: 12px; width: auto; display: inline-block;">
                             <option value="vs-dark">Dark</option>
                             <option value="vs">Light</option>

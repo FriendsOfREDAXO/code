@@ -96,9 +96,28 @@ class CodeFileBrowser {
         // Theme Switcher Init & Event
         const themeSwitcher = $('#theme-switcher');
         if (themeSwitcher.length) {
-            themeSwitcher.val(this.getTheme());
+            const currentTheme = localStorage.getItem('rex_code_theme') || 'vs-dark';
+            themeSwitcher.val(currentTheme);
             themeSwitcher.on('change', (e) => {
-                this.setTheme(e.target.value);
+                const newTheme = e.target.value;
+                localStorage.setItem('rex_code_theme', newTheme);
+                if (this.monacoEditor) {
+                    monaco.editor.setTheme(newTheme);
+                }
+            });
+        }
+        
+        // Font Size Switcher Init & Event
+        const fontsizeSwitcher = $('#fontsize-switcher');
+        if (fontsizeSwitcher.length) {
+            const currentFontSize = localStorage.getItem('rex_code_fontsize') || '14';
+            fontsizeSwitcher.val(currentFontSize);
+            fontsizeSwitcher.on('change', (e) => {
+                const newFontSize = parseInt(e.target.value);
+                localStorage.setItem('rex_code_fontsize', newFontSize.toString());
+                if (this.monacoEditor) {
+                    this.monacoEditor.updateOptions({ fontSize: newFontSize });
+                }
             });
         }
         
@@ -428,7 +447,35 @@ class CodeFileBrowser {
         
         // Monaco Editor erstellen falls nicht vorhanden
         if (!this.monacoEditor) {
-            this.createMonacoEditor();
+            const theme = localStorage.getItem('rex_code_theme') || 'vs-dark';
+            const fontSize = parseInt(localStorage.getItem('rex_code_fontsize') || '14');
+            
+            this.monacoEditor = monaco.editor.create(document.getElementById('monaco-editor'), {
+                value: '',
+                language: 'plaintext',
+                theme: theme,
+                fontSize: fontSize,
+                automaticLayout: true,
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                lineNumbers: 'on',
+                wordWrap: 'on'
+            });
+            
+            // Change Event für Modifications
+            this.monacoEditor.onDidChangeModelContent(() => {
+                this.setFileModified(true);
+            });
+            
+            // Cursor Position anzeigen
+            this.monacoEditor.onDidChangeCursorPosition((e) => {
+                $('#cursor-position').text(`Ln ${e.position.lineNumber}, Col ${e.position.column}`);
+            });
+            
+            // Keyboard Shortcuts
+            this.monacoEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+                this.saveCurrentFile();
+            });
         }
         
         // Sprache bestimmen
@@ -1889,13 +1936,23 @@ class CodeAreaReplacer {
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <button type="button" class="btn btn-default btn-xs action-format" title="Format Code" style="background: ${selectBg}; color: ${selectColor}; border-color: ${toolbarBorder}; height: 24px; padding: 0 8px;">
-                            <i class="rex-icon fa-align-left"></i>
-                        </button>
-                        
                         <div style="border-left: 1px solid ${toolbarBorder}; height: 16px; margin: 0 5px; opacity: 0.5;"></div>
 
-                        <span style="font-size: 11px; margin-right: 5px; color: ${selectColor}; opacity: 0.7;">Theme:</span>
+                        <span style="font-size: 11px; margin-right: 5px; color: ${selectColor}; opacity: 0.7;">Größe:</span>
+                        <select class="form-control input-sm fontsize-switcher" style="height: 24px; padding: 0 5px; font-size: 12px; width: auto; background-color: ${selectBg}; color: ${selectColor}; border-color: ${toolbarBorder};">
+                            <option value="10">10px</option>
+                            <option value="11">11px</option>
+                            <option value="12">12px</option>
+                            <option value="13">13px</option>
+                            <option value="14" selected>14px</option>
+                            <option value="15">15px</option>
+                            <option value="16">16px</option>
+                            <option value="18">18px</option>
+                            <option value="20">20px</option>
+                            <option value="22">22px</option>
+                        </select>
+
+                        <span style="font-size: 11px; margin: 0 5px; color: ${selectColor}; opacity: 0.7;">Theme:</span>
                         <select class="form-control input-sm theme-switcher" style="height: 24px; padding: 0 5px; font-size: 12px; width: auto; background-color: ${selectBg}; color: ${selectColor}; border-color: ${toolbarBorder};">
                             <option value="vs-dark">Dark</option>
                             <option value="vs">Light</option>
@@ -1951,6 +2008,10 @@ class CodeAreaReplacer {
             const currentTheme = localStorage.getItem('rex_code_theme') || 'vs-dark';
             toolbar.find('.theme-switcher').val(currentTheme);
 
+            // Font size initial setzen
+            const currentFontSize = localStorage.getItem('rex_code_fontsize') || '14';
+            toolbar.find('.fontsize-switcher').val(currentFontSize);
+
             // Sprache ermitteln (Default: PHP/HTML Mix)
             let language = 'php';
             if (textarea.hasClass('rex-code-css')) language = 'css';
@@ -1964,6 +2025,7 @@ class CodeAreaReplacer {
                 value: content,
                 language: language,
                 theme: localStorage.getItem('rex_code_theme') || 'vs-dark',
+                fontSize: parseInt(localStorage.getItem('rex_code_fontsize') || '14'),
                 automaticLayout: true,
                 minimap: { enabled: false },
                 scrollBeyondLastLine: false,
@@ -1978,6 +2040,15 @@ class CodeAreaReplacer {
                 monaco.editor.setTheme(newTheme);
                 // Update all other switchers
                 $('.monaco-toolbar .theme-switcher').val(newTheme);
+            });
+
+            // Font Size Switcher Event
+            toolbar.find('.fontsize-switcher').on('change', (e) => {
+                const newFontSize = parseInt(e.target.value);
+                localStorage.setItem('rex_code_fontsize', newFontSize.toString());
+                editor.updateOptions({ fontSize: newFontSize });
+                // Update all other font size switchers
+                $('.monaco-toolbar .fontsize-switcher').val(newFontSize);
             });
 
             // Snippet Insert Event
@@ -2011,11 +2082,6 @@ class CodeAreaReplacer {
                     icon.removeClass('fa-compress').addClass('fa-expand');
                     $('body').css('overflow', '');
                 }
-            });
-
-            // Format Code
-            toolbar.find('.action-format').on('click', () => {
-                editor.trigger('anyString', 'editor.action.formatDocument');
             });
 
             // Sync on Change
