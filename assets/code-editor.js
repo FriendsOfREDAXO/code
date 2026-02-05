@@ -114,7 +114,7 @@ class CodeFileBrowser {
         // Theme Switcher Init & Event
         const themeSwitcher = $('#theme-switcher');
         if (themeSwitcher.length) {
-            const currentTheme = localStorage.getItem('rex_code_theme') || 'vs-dark';
+            const currentTheme = localStorage.getItem('rex_code_theme') || 'redaxo-dark';
             themeSwitcher.val(currentTheme);
             themeSwitcher.on('change', (e) => {
                 const newTheme = e.target.value;
@@ -546,16 +546,103 @@ class CodeFileBrowser {
             return;
         }
 
+        // LocalStorage Einstellungen laden
+        const currentTheme = localStorage.getItem('rex_code_theme') || 'redaxo-dark';
+        const currentFontSize = localStorage.getItem('rex_code_fontsize') || '14';
+        const showLineNumbers = localStorage.getItem('rex_code_line_numbers') !== 'false';
+        const enableWordWrap = localStorage.getItem('rex_code_word_wrap') !== 'false';
+        const showMinimap = localStorage.getItem('rex_code_minimap') === 'true';
+        const showWhitespace = localStorage.getItem('rex_code_whitespace') === 'true';
+
+        // REDAXO Custom Themes definieren
+        monaco.editor.defineTheme('redaxo-dark', {
+            base: 'vs-dark',
+            inherit: true,
+            rules: [
+                { token: '', foreground: 'dfe3e9', background: '20262e' },
+                { token: 'comment', foreground: '6c7a89', fontStyle: 'italic' },
+                { token: 'keyword', foreground: '5bc0de', fontStyle: 'bold' },
+                { token: 'string', foreground: 'a8d08d' },
+                { token: 'number', foreground: 'f5ab35' },
+                { token: 'variable', foreground: '9b59b6' },
+                { token: 'function', foreground: '52c6db' },
+                { token: 'type', foreground: '3498db' },
+                { token: 'class', foreground: 'e67e22' },
+                { token: 'operator', foreground: 'e74c3c' },
+                { token: 'delimiter', foreground: 'bdc3c7' },
+            ],
+            colors: {
+                'editor.background': '#20262e',
+                'editor.foreground': '#dfe3e9',
+                'editorLineNumber.foreground': '#6c7a89',
+                'editorLineNumber.activeForeground': '#dfe3e9',
+                'editor.selectionBackground': '#3b4351',
+                'editor.lineHighlightBackground': '#2a313a',
+                'editorCursor.foreground': '#5bc0de',
+                'editorWhitespace.foreground': '#3b4351',
+                'editorIndentGuide.background': '#3b4351',
+                'editorIndentGuide.activeBackground': '#6c7a89',
+                'editor.selectionHighlightBackground': '#3b435155',
+                'editorBracketMatch.background': '#3b435199',
+                'editorBracketMatch.border': '#5bc0de',
+                'scrollbarSlider.background': '#3b435188',
+                'scrollbarSlider.hoverBackground': '#3b4351bb',
+                'scrollbarSlider.activeBackground': '#3b4351dd'
+            }
+        });
+
+        // REDAXO Light Theme definieren
+        monaco.editor.defineTheme('redaxo-light', {
+            base: 'vs',
+            inherit: true,
+            rules: [
+                { token: '', foreground: '333333', background: 'f9fcfb' },
+                { token: 'comment', foreground: '95a5a6', fontStyle: 'italic' },
+                { token: 'keyword', foreground: '2980b9', fontStyle: 'bold' },
+                { token: 'string', foreground: '229954' },
+                { token: 'number', foreground: 'e67e22' },
+                { token: 'variable', foreground: '8e44ad' },
+                { token: 'function', foreground: '138d75' },
+                { token: 'type', foreground: '3498db' },
+                { token: 'class', foreground: 'd35400' },
+                { token: 'operator', foreground: 'c0392b' },
+                { token: 'delimiter', foreground: '7f8c8d' },
+            ],
+            colors: {
+                'editor.background': '#f9fcfb',
+                'editor.foreground': '#333333',
+                'editorLineNumber.foreground': '#95a5a6',
+                'editorLineNumber.activeForeground': '#333333',
+                'editor.selectionBackground': '#d6eaf8',
+                'editor.lineHighlightBackground': '#ecf5f2',
+                'editorCursor.foreground': '#2980b9',
+                'editorWhitespace.foreground': '#ecf5f2',
+                'editorIndentGuide.background': '#ecf5f2',
+                'editorIndentGuide.activeBackground': '#bdc3c7',
+                'editor.selectionHighlightBackground': '#d6eaf855',
+                'editorBracketMatch.background': '#d6eaf899',
+                'editorBracketMatch.border': '#2980b9',
+                'scrollbarSlider.background': '#bdc3c788',
+                'scrollbarSlider.hoverBackground': '#bdc3c7bb',
+                'scrollbarSlider.activeBackground': '#bdc3c7dd'
+            }
+        });
+
+        // Editor erstellen mit localStorage Settings
         this.monacoEditor = monaco.editor.create(container, {
-            theme: this.getTheme(),
-            fontSize: 14,
+            theme: currentTheme,
+            fontSize: parseInt(currentFontSize),
             fontFamily: 'Monaco, Consolas, "Courier New", monospace',
-            minimap: { enabled: false },
+            minimap: { enabled: showMinimap },
             scrollBeyondLastLine: false,
             automaticLayout: true,
-            wordWrap: 'on',
-            lineNumbers: 'on'
+            wordWrap: enableWordWrap ? 'on' : 'off',
+            lineNumbers: showLineNumbers ? 'on' : 'off',
+            renderWhitespace: showWhitespace ? 'all' : 'none'
         });
+
+        // Toolbar für Editor-Optionen hinzufügen
+        this.createEditorToolbar();
 
         // Change Detection
         this.monacoEditor.onDidChangeModelContent(() => {
@@ -567,7 +654,90 @@ class CodeFileBrowser {
             this.saveCurrentFile();
         });
         
-        console.log('Monaco Editor created');
+        console.log('Monaco Editor created with REDAXO themes and toolbar controls');
+    }
+
+    createEditorToolbar() {
+        // Prüfe ob Toolbar bereits existiert
+        if ($('#file-browser-editor-toolbar').length > 0) {
+            return;
+        }
+
+        // LocalStorage Einstellungen laden
+        const showLineNumbers = localStorage.getItem('rex_code_line_numbers') !== 'false';
+        const enableWordWrap = localStorage.getItem('rex_code_word_wrap') !== 'false';
+        const showMinimap = localStorage.getItem('rex_code_minimap') === 'true';
+        const showWhitespace = localStorage.getItem('rex_code_whitespace') === 'true';
+
+        // Toolbar HTML
+        const toolbar = $(`
+            <div id="file-browser-editor-toolbar" style="position: absolute; top: 10px; right: 10px; z-index: 1000; background: rgba(255,255,255,0.9); padding: 5px 10px; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); display: flex; gap: 8px; align-items: center;">
+                <button type="button" class="btn btn-xs btn-default toggle-line-numbers" title="Zeilennummern ein/aus" style="opacity: ${showLineNumbers ? '1' : '0.5'}">
+                    <i class="rex-icon fa-list-ol"></i>
+                </button>
+                <button type="button" class="btn btn-xs btn-default toggle-word-wrap" title="Zeilenumbruch ein/aus" style="opacity: ${enableWordWrap ? '1' : '0.5'}">
+                    <i class="rex-icon fa-align-left"></i>
+                </button>
+                <button type="button" class="btn btn-xs btn-default toggle-minimap" title="Minimap ein/aus" style="opacity: ${showMinimap ? '1' : '0.5'}">
+                    <i class="rex-icon fa-map"></i>
+                </button>
+                <button type="button" class="btn btn-xs btn-default toggle-whitespace" title="Whitespace anzeigen" style="opacity: ${showWhitespace ? '1' : '0.5'}">
+                    <i class="rex-icon fa-paragraph"></i>
+                </button>
+            </div>
+        `);
+
+        // Toolbar in Monaco Container einfügen
+        $('#monaco-editor').append(toolbar);
+
+        // Event-Handler für Toolbar-Buttons
+        toolbar.find('.toggle-line-numbers').on('click', () => {
+            const currentValue = localStorage.getItem('rex_code_line_numbers') !== 'false';
+            const newValue = !currentValue;
+            localStorage.setItem('rex_code_line_numbers', newValue.toString());
+            
+            this.monacoEditor.updateOptions({
+                lineNumbers: newValue ? 'on' : 'off'
+            });
+            
+            toolbar.find('.toggle-line-numbers').css('opacity', newValue ? '1' : '0.5');
+        });
+
+        toolbar.find('.toggle-word-wrap').on('click', () => {
+            const currentValue = localStorage.getItem('rex_code_word_wrap') !== 'false';
+            const newValue = !currentValue;
+            localStorage.setItem('rex_code_word_wrap', newValue.toString());
+            
+            this.monacoEditor.updateOptions({
+                wordWrap: newValue ? 'on' : 'off'
+            });
+            
+            toolbar.find('.toggle-word-wrap').css('opacity', newValue ? '1' : '0.5');
+        });
+
+        toolbar.find('.toggle-minimap').on('click', () => {
+            const currentValue = localStorage.getItem('rex_code_minimap') === 'true';
+            const newValue = !currentValue;
+            localStorage.setItem('rex_code_minimap', newValue.toString());
+            
+            this.monacoEditor.updateOptions({
+                minimap: { enabled: newValue }
+            });
+            
+            toolbar.find('.toggle-minimap').css('opacity', newValue ? '1' : '0.5');
+        });
+
+        toolbar.find('.toggle-whitespace').on('click', () => {
+            const currentValue = localStorage.getItem('rex_code_whitespace') === 'true';
+            const newValue = !currentValue;
+            localStorage.setItem('rex_code_whitespace', newValue.toString());
+            
+            this.monacoEditor.updateOptions({
+                renderWhitespace: newValue ? 'all' : 'none'
+            });
+            
+            toolbar.find('.toggle-whitespace').css('opacity', newValue ? '1' : '0.5');
+        });
     }
 
     showEditor() {

@@ -1,124 +1,125 @@
 # REDAXO Code Editor AddOn
 
-⚠️ **EMERGENCY USE ONLY - NOT FOR DEVELOPMENT** ⚠️
-
-## 🚨 Important Notice
-
-**This AddOn is NOT intended for regular development work!**
-
-### ✅ **What this is for:**
-- **Emergency bug fixes** on live servers
-- **Quick hotfixes** when other tools are unavailable
-- **Temporary file edits** in critical situations
-
-### ❌ **What this is NOT for:**
-- **Regular development work**
-- **Project development**
-- **Long-term code editing**
-- **Team collaboration**
-
-### 🏠 **For Real Development Use:**
-- **Local development environments** (XAMPP, Docker, etc.)
-- **Professional IDEs** (VS Code, PhpStorm, Sublime Text)
-- **Version control systems** (Git, SVN)
-- **Deployment tools** (deployer, rsync, CI/CD pipelines)
-
----
-
-## Description
-
-This AddOn provides an integrated file browser with code editor for REDAXO CMS. It enables direct file editing through the backend interface for **emergency situations only**.
-
-**FUNCTIONALITY SCOPE:**
-- ✅ **Edit existing** files for quick fixes
-- ✅ **Virtual trash system** with restore functionality  
-- ✅ **Protected system files** (automatic prevention)
-- ✅ **Automatic self-deactivation** after 2 days of inactivity
-- 🛠️ **Exclusively** for emergency repairs
-
-## ⚠️ Security & Usage Warnings
-
-**CRITICAL:** This AddOn should **ONLY be used in emergencies**!
-
-### 🔒 **Security Features:**
-- ✅ **Admin access only** - restricted to administrators
-- ✅ **Protected system files** - prevents deletion of critical files
-- ✅ **Auto-deactivation** - deactivates after 2 days of inactivity
-- ✅ **Data cleanup** - removes backups and trash on deactivation
-- ✅ **Virtual trash system** - deleted files can be restored
-
-### ⚠️ **Usage Guidelines:**
-- 🚫 **Production environment:** Never leave activated on live servers
-- � **Emergency only:** Use only for critical bug fixes
-- 💾 **Backup first:** Always backup your site before using
-- ⏱️ **Time limit:** Addon automatically deactivates after 2 days inactivity
-- �️ **Clean exit:** All data is automatically cleaned up on deactivation
-
-### 🏆 **Best Practices:**
-1. **Use proper development setup locally**
-2. **Deploy changes through established workflows**  
-3. **Keep this addon for true emergencies only**
-4. **Test changes in staging environment first**
-5. **Document any emergency changes made**
+Modern code editing experience for REDAXO CMS with Monaco Editor (VS Code) integration.
 
 ## Features
 
-### 🛠️ **Emergency Tools:**
-- **File Browser** with NextCloud-style interface
-- **Monaco Editor** (VS Code) - **local installation** (no CDN!)
-- **Fullscreen mode** for focused editing (F11 or button)
-- **Live full-text search** in project files
-- **Line navigation** from search results
-- **Offline capable** - works without internet connection
+### 🎨 **Monaco Editor Integration**
+- **Monaco Editor** (VS Code editor) for `.rex-code` textareas
+- **Local installation** - no CDN dependencies, works offline
+- **REDAXO Custom Themes** - Dark & Light themes matching REDAXO design
+- **Syntax highlighting** for PHP, JavaScript, CSS, HTML, SQL, JSON
+- **Code snippets** with 15+ REDAXO variable categories
+- **Intelligent autocomplete** with context-aware suggestions
+- **Multiple cursors** and advanced editing features
 
-### 🔐 **Safety Features:**
-- **Automatic backups** on every file modification
-- **Virtual trash system** - restore accidentally deleted files
-- **Protected system files** - prevents deletion of critical files
-- **Backup management** with restore and cleanup functions
-- **Auto-deactivation** after 2 days of inactivity
+### 🛠️ **File Browser**
+- **NextCloud-style interface** for file management
+- **Live full-text search** across all project files
+- **Line navigation** - jump directly to search results
+- **Admin access only** - restricted to administrators
+- **Auto-deactivation** - deactivates after 2 days of inactivity
+
+### 🔐 **Safety Features**
+- **Automatic backups** before every file modification
+- **Virtual trash system** - restore deleted files
+- **Protected system files** - prevents critical file deletion
+- **Backup management** with restore functionality
 - **Data cleanup** on deactivation
 
-### 📝 **File Operations:**
-- ✅ **Edit existing files** (with syntax highlighting)
-- ✅ **Delete files** (to virtual trash - can be restored)
-- ✅ **Restore files** from trash
-- ❌ **No file creation** - use proper IDE for development
-- 🔒 **System file protection** (index.php, .htaccess, config files, etc.)
+### 📝 **Editor Toolbar Controls**
+- **Theme Switcher** - REDAXO Dark/Light, VS Dark/Light, High Contrast
+- **Font Size** - adjustable from 10px to 22px
+- **Line Numbers** - toggle on/off
+- **Word Wrap** - toggle line wrapping
+- **Minimap** - code overview panel
+- **Whitespace** - show/hide spaces and tabs
+- All settings saved per user via localStorage
+
+## Auto-Deactivation System
+
+The File Browser deactivates automatically after 2 days of inactivity for security:
+
+- ✅ **AddOn stays active** - only File Browser/Search/Backups require reactivation
+- ✅ **Monaco Editor keeps working** - `.rex-code` enhancement remains active
+- ✅ **Code Snippets remain** - all editing features stay available
+- ⏱️ **2-day timer** - resets on every File Browser access
+- 🔓 **Easy reactivation** - click button with security warning
+- 🗑️ **No data loss** - backups and trash are preserved
+
+### Reactivation Workflow
+
+When File Browser is deactivated:
+1. Navigate to **Code → File Browser**
+2. See security warning with 5 important points
+3. Click **"File-Browser aktivieren (2 Tage)"**
+4. Timer resets for 2 more days
+5. Alternative: Enable in **Settings** page
+
+## Configuration
+
+Configure via **Code → Settings**:
+
+### Editor Settings
+- **Monaco Editor aktivieren** - Replace `.rex-code` textareas with Monaco Editor
+- **File-Browser aktivieren** - Enable/disable File Browser (also Search & Backup)
+
+### Backup Settings
+- **Auto-Backup** - Create backup before every save
+- **Backup-Limit** - Max backups per file (5-100)
+- **Papierkorb-Limit** - Max files in trash (10-100)
+
+## `.rex-code` Exclusion List
+
+Some textareas are automatically excluded from Monaco Editor replacement:
+
+### Manual Exclusion
+Add class `code_disable` to any textarea:
+```html
+<textarea class="rex-code code_disable">
+    This will NOT be replaced by Monaco Editor
+</textarea>
+```
+
+### Automatic Exclusions
+- **MBlock elements** - `.mblock-item textarea.rex-code`
+- **MForm Repeater** - `.mform-repeater-item textarea.rex-code`
+
+This prevents DOM conflicts with dynamic form builders.
+
+## Code Snippets
+
+15+ categories with 200+ snippets for REDAXO development:
+
+- **REX_VALUE** - Module values with all parameters
+- **REX_MEDIA** - Media handling and widgets
+- **REX_MEDIALIST** - Media lists and loops
+- **REX_LINK** - Article links and URLs
+- **REX_LINKLIST** - Link lists and navigation
+- **REX_ARTICLE** - Article content and fields
+- **REX_CATEGORY** - Category data and navigation
+- **REX_TEMPLATE** - Template handling
+- **REX_CONFIG** - Configuration access
+- **REX_CLANG** - Multi-language support
+- **REX_USER** - User information
+- **REDAXO Core** - Common API calls
+- **MForm** - Form builder elements
+- **MBlock** - Repeatable content blocks
+- **Parameter** - Variable parameters
+
+All snippets include PHP and placeholder variants.
 
 ## Installation
-
-⚠️ **Before Installation:** Ensure you have a proper local development setup for regular work!
 
 1. **Upload AddOn** to REDAXO
 2. **Monaco Editor Setup**: 
    ```bash
-   cd src/addons/code/assets
+   cd redaxo/src/addons/code
    npm install
    npm run build
    ```
 3. **Install and activate** the AddOn
-4. **Use ONLY for emergency repairs**
-5. **Addon will auto-deactivate** after 2 days of inactivity
-
-## Usage Workflow
-
-### 🚨 **Emergency Situation:**
-1. **Backup your site first** (always!)
-2. **Activate the AddOn** (if not already active)
-3. **Make minimal necessary changes** only
-4. **Test the fix immediately**
-5. **Document what you changed**
-6. **Let the AddOn auto-deactivate** (or deactivate manually)
-7. **Implement proper fix in your development environment**
-8. **Deploy through your normal workflow**
-
-### 🏠 **For Regular Development:**
-- **Use local development environment** (Docker, XAMPP, etc.)
-- **Use professional IDE** (VS Code, PhpStorm, etc.)
-- **Use version control** (Git with proper branching)
-- **Use deployment tools** (rsync, CI/CD, etc.)
-- **Test in staging environment**
+4. **Configure** in Code → Settings
 
 ## System Requirements
 
@@ -126,68 +127,136 @@ This AddOn provides an integrated file browser with code editor for REDAXO CMS. 
 - **PHP 8.1+**
 - **Node.js & NPM** (for Monaco Editor setup)
 - **Administrator permissions**
-- **Local development environment** (for regular work)
 
-## Configuration
+## Security Considerations
 
-The AddOn can be configured via `package.yml`:
+### ⚠️ File Browser Access
+- **Admin-only** - restricted to administrator accounts
+- **Auto-deactivation** - File Browser deactivates after 2 days
+- **Security warning** - shown before reactivation
+- **Audit trail** - all actions logged
+
+### 🔒 Protected Files
+System-critical files cannot be deleted:
+- `index.php`, `.htaccess`
+- `config.yml`, `package.yml`
+- Core system files
+
+### 💾 Backup System
+- **Automatic backups** before file modifications
+- **Configurable retention** (5-100 backups per file)
+- **Restore functionality** via Backup & Trash page
+- **Manual cleanup** or automatic on deactivation
+
+## Usage
+
+### Monaco Editor for Modules
+The Monaco Editor automatically replaces `.rex-code` textareas in:
+- Module Input/Output
+- Template editor
+- YForm action fields
+- Any custom `.rex-code` textarea
+
+**Exclude specific textareas:**
+```html
+<textarea class="rex-code code_disable">
+    <!-- This textarea keeps default editor -->
+</textarea>
+```
+
+### File Browser
+1. Navigate to **Code → File Browser**
+2. Browse project files (if enabled)
+3. Click file to open in editor
+4. Edit and save (automatic backup created)
+5. Use search for quick file finding
+
+### Search
+1. Go to **Code → Code Search**
+2. Enter search term (minimum 2 characters)
+3. Results show filename, line number, context
+4. Click result to open file at specific line
+
+### Backup & Trash
+1. Navigate to **Code → Backup & Trash**
+2. **Backups tab** - restore previous file versions
+3. **Trash tab** - restore or permanently delete files
+
+## Keyboard Shortcuts
+
+In Monaco Editor:
+- `Ctrl/Cmd + S` - Save file
+- `Ctrl/Cmd + F` - Find in file
+- `Ctrl/Cmd + H` - Replace in file
+- `Ctrl/Cmd + /` - Toggle line comment
+- `Alt + Click` - Multiple cursors
+- `Ctrl/Cmd + D` - Select next occurrence
+- `F11` - Fullscreen mode (File Browser only)
+
+## Troubleshooting
+
+### Monaco Editor not loading
+1. Check browser console for errors
+2. Verify Monaco is built: `npm run build`
+3. Clear browser cache
+4. Check file permissions on `assets/` folder
+
+### `.rex-code` replacement not working
+1. Check Settings: "Monaco Editor aktivieren" must be "Aktiviert"
+2. Verify textarea has class `rex-code`
+3. Check if textarea is inside `.mblock-item` or `.mform-repeater-item`
+4. Check for `code_disable` class
+
+### File Browser deactivated
+This is normal after 2 days of inactivity:
+1. Go to Code → File Browser
+2. Read security warning carefully
+3. Click "File-Browser aktivieren (2 Tage)"
+4. Or enable in Settings page
+
+## Configuration via package.yml
 
 ```yaml
 config:
-    auto_deactivate_after_days: 2    # Auto-deactivation after inactivity
-    cleanup_data_on_deactivate: true # Clean backups/trash on deactivation
+    # Auto-deactivation after X days (0 = disabled)
+    auto_deactivate_after_days: 2
+    # Clean data when File Browser deactivates
+    cleanup_data_on_deactivate: true
 ```
 
-## Auto-Deactivation System
+## Development
 
-- **Automatic deactivation** after 2 days of inactivity (configurable)
-- **Silent operation** - no warnings or notifications
-- **Data cleanup** - backups and trash are automatically removed
-- **Secure cleanup** - all addon data is removed on deactivation
+### Building Monaco Editor
+```bash
+npm install
+npm run build
+```
 
-## Why This Approach?
+This creates optimized Monaco Editor bundle in `assets/monaco-editor/`.
 
-### 🚨 **Emergency Tool Philosophy:**
-This AddOn is designed as a "fire extinguisher" - always available when needed, but not for daily use.
+### Adding Snippets
+Edit `assets/code-editor.js` → `getSnippets()` method.
 
-### 🏠 **Proper Development Setup:**
-- **Local environment** gives you full control and safety
-- **Version control** prevents data loss and enables collaboration  
-- **Professional IDEs** provide better debugging, autocomplete, and tools
-- **Staging environments** let you test safely before going live
-- **Deployment automation** reduces human error
-
-### ⚖️ **Risk vs. Benefit:**
-- **High risk:** Direct server file editing
-- **High benefit:** Quick emergency fixes when other tools unavailable
-- **Mitigation:** Auto-deactivation, backups, protected files, trash system
-
----
-
-**Remember: Great power comes with great responsibility. Use this tool wisely!** 🦸‍♂️
-
-## Warning Against Misuse
-
-This tool is **exclusively** for:
-- ✅ Emergency repairs (editing only!)
-- ✅ Quick bug fixes of existing files
-- ✅ Development/debugging (local only)
-
-**NOT for:**
-- ❌ Regular development
-- ❌ Production editing
-- ❌ Permanent installation
-- ❌ Creating or deleting files
-
-## Disclaimer
-
-Use at your own risk. Always create complete backups before using this tool.
+### Custom Themes
+Monaco themes are defined in `assets/code-editor.js`:
+- `redaxo-dark` (default)
+- `redaxo-light`
 
 ## License
 
-This AddOn is licensed under the MIT License. See [LICENSE.md](LICENSE.md) for details.
+MIT License - see [LICENSE](LICENSE) file.
 
 ## Author
-KLXM Crossmedia GmbH
 
-Developed for REDAXO CMS - Emergency tool for administrators
+**KLXM Crossmedia GmbH**
+Developed for REDAXO CMS
+
+## Support
+
+- **GitHub Issues**: Report bugs and feature requests
+- **REDAXO Slack**: Community support in #addons channel
+- **Documentation**: See MONACO_SETUP.md for editor details
+
+---
+
+**Remember:** This AddOn provides powerful file editing capabilities. Use responsibly, especially on production servers. The auto-deactivation system helps prevent long-term security risks.

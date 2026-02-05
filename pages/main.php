@@ -175,8 +175,10 @@ $content = '
                         </select>
                         <label style="display: inline-block; margin-right: 5px; font-size: 11px; font-weight: normal;">Theme:</label>
                         <select id="theme-switcher" class="form-control input-sm" style="height: 22px; padding: 0 5px; font-size: 12px; width: auto; display: inline-block;">
-                            <option value="vs-dark">Dark</option>
-                            <option value="vs">Light</option>
+                            <option value="redaxo-dark">REDAXO Dark</option>
+                            <option value="redaxo-light">REDAXO Light</option>
+                            <option value="vs-dark">VS Dark</option>
+                            <option value="vs">VS Light</option>
                             <option value="hc-black">High Contrast</option>
                         </select>
                     </div>
