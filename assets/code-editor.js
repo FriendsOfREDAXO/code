@@ -550,7 +550,7 @@ class CodeFileBrowser {
             theme: this.getTheme(),
             fontSize: 14,
             fontFamily: 'Monaco, Consolas, "Courier New", monospace',
-            minimap: { enabled: true },
+            minimap: { enabled: false },
             scrollBeyondLastLine: false,
             automaticLayout: true,
             wordWrap: 'on',
@@ -2183,9 +2183,33 @@ class CodeAreaReplacer {
             return;
         }
 
-        const areas = $('textarea.rex-code');
+        // Ausschlussliste: Diese Textareas sollen NICHT ersetzt werden
+        // - .code_disable: Explizit deaktiviert
+        // - .mblock-item textarea: In MBlock Repeatern
+        // - .mform-repeater-item textarea: In MForm Repeatern
+        let areas = $('textarea.rex-code');
+        
+        // Filtere ausgeschlossene Textareas
+        areas = areas.not('.code_disable').filter(function() {
+            const $this = $(this);
+            
+            // Prüfe ob in MBlock Container
+            if ($this.closest('.mblock-item').length > 0) {
+                console.log('Skipping textarea in MBlock:', $this.attr('name'));
+                return false;
+            }
+            
+            // Prüfe ob in MForm Repeater Container
+            if ($this.closest('.mform-repeater-item').length > 0) {
+                console.log('Skipping textarea in MForm Repeater:', $this.attr('name'));
+                return false;
+            }
+            
+            return true;
+        });
+        
         if (areas.length > 0) {
-            console.log('Found .rex-code textareas, optimizing...');
+            console.log('Found ' + areas.length + ' .rex-code textareas after filtering, optimizing...');
             this.loadMonaco().then(() => {
                 this.replaceAreas(areas);
             });
@@ -2413,15 +2437,18 @@ class CodeAreaReplacer {
 
             const wrapper = $('<div class="monaco-wrapper" style="position:relative; z-index: 10; border: 1px solid ' + toolbarBorder + ';"></div>');
             
+            const snippetsHtml = `
+                <div style="flex: 1; display: flex; align-items: center; gap: 5px;">
+                    <input type="text" class="form-control input-sm snippet-search" placeholder="Suche..." style="height: 24px; padding: 0 5px; font-size: 11px; width: 100px; background-color: ${selectBg}; color: ${selectColor}; border-color: ${toolbarBorder};">
+                    <select class="form-control input-sm snippet-selector" style="height: 24px; padding: 0 5px; font-size: 11px; width: auto; max-width: 200px; background-color: ${selectBg}; color: ${selectColor}; border-color: ${toolbarBorder};">
+                        <option value="">Snippets...</option>
+                    </select>
+                </div>
+            `;
+            
             const toolbar = $(`
                 <div class="monaco-toolbar" style="background: ${toolbarBg}; padding: 5px 10px; border-bottom: 1px solid ${toolbarBorder}; display: flex; justify-content: space-between; align-items: center;">
-                    
-                    <div style="flex: 1; display: flex; align-items: center; gap: 5px;">
-                        <input type="text" class="form-control input-sm snippet-search" placeholder="Suche..." style="height: 24px; padding: 0 5px; font-size: 11px; width: 100px; background-color: ${selectBg}; color: ${selectColor}; border-color: ${toolbarBorder};">
-                        <select class="form-control input-sm snippet-selector" style="height: 24px; padding: 0 5px; font-size: 11px; width: auto; max-width: 200px; background-color: ${selectBg}; color: ${selectColor}; border-color: ${toolbarBorder};">
-                            <option value="">Snippets...</option>
-                        </select>
-                    </div>
+                    ${snippetsHtml}
 
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <div style="border-left: 1px solid ${toolbarBorder}; height: 16px; margin: 0 5px; opacity: 0.5;"></div>
@@ -2442,10 +2469,27 @@ class CodeAreaReplacer {
 
                         <span style="font-size: 11px; margin: 0 5px; color: ${selectColor}; opacity: 0.7;">Theme:</span>
                         <select class="form-control input-sm theme-switcher" style="height: 24px; padding: 0 5px; font-size: 12px; width: auto; background-color: ${selectBg}; color: ${selectColor}; border-color: ${toolbarBorder};">
+                            <option value="redaxo-dark">REDAXO Dark</option>
+                            <option value="redaxo-light">REDAXO Light</option>
                             <option value="vs-dark">Dark</option>
                             <option value="vs">Light</option>
                             <option value="hc-black">High Contrast</option>
                         </select>
+
+                        <div style="border-left: 1px solid ${toolbarBorder}; height: 16px; margin: 0 5px; opacity: 0.5;"></div>
+
+                        <button type="button" class="btn btn-xs toggle-line-numbers" title="Zeilennummern ein/aus" style="height: 24px; padding: 2px 8px; background-color: ${selectBg}; color: ${selectColor}; border-color: ${toolbarBorder};">
+                            <i class="fa fa-list-ol"></i>
+                        </button>
+                        <button type="button" class="btn btn-xs toggle-word-wrap" title="Zeilenumbruch ein/aus" style="height: 24px; padding: 2px 8px; background-color: ${selectBg}; color: ${selectColor}; border-color: ${toolbarBorder};">
+                            <i class="fa fa-align-left"></i>
+                        </button>
+                        <button type="button" class="btn btn-xs toggle-minimap" title="Minimap ein/aus" style="height: 24px; padding: 2px 8px; background-color: ${selectBg}; color: ${selectColor}; border-color: ${toolbarBorder};">
+                            <i class="fa fa-map"></i>
+                        </button>
+                        <button type="button" class="btn btn-xs toggle-whitespace" title="Whitespace anzeigen" style="height: 24px; padding: 2px 8px; background-color: ${selectBg}; color: ${selectColor}; border-color: ${toolbarBorder};">
+                            <i class="fa fa-space-shuttle"></i>
+                        </button>
                     </div>
                 </div>
             `);
@@ -2459,46 +2503,138 @@ class CodeAreaReplacer {
             
             // Populate Snippets
             const snippets = this.getSnippets();
-            const snippetSelect = toolbar.find('.snippet-selector');
-            
-            const renderSnippets = (filter = '') => {
-                snippetSelect.empty();
-                snippetSelect.append('<option value="">Snippets...</option>');
-                const term = filter.toLowerCase();
+                const snippetSelect = toolbar.find('.snippet-selector');
+                
+                const renderSnippets = (filter = '') => {
+                    snippetSelect.empty();
+                    snippetSelect.append('<option value="">Snippets...</option>');
+                    const term = filter.toLowerCase();
 
-                Object.keys(snippets).forEach(category => {
-                    const group = $('<optgroup label="' + category + '"></optgroup>');
-                    let hasOptions = false;
+                    Object.keys(snippets).forEach(category => {
+                        const group = $('<optgroup label="' + category + '"></optgroup>');
+                        let hasOptions = false;
 
-                    Object.keys(snippets[category]).forEach(name => {
-                        if (name.toLowerCase().includes(term) || category.toLowerCase().includes(term)) {
-                            group.append($('<option>', {
-                                value: snippets[category][name],
-                                text: name
-                            }));
-                            hasOptions = true;
+                        Object.keys(snippets[category]).forEach(name => {
+                            if (name.toLowerCase().includes(term) || category.toLowerCase().includes(term)) {
+                                group.append($('<option>', {
+                                    value: snippets[category][name],
+                                    text: name
+                                }));
+                                hasOptions = true;
+                            }
+                        });
+                        
+                        if (hasOptions) {
+                            snippetSelect.append(group);
                         }
                     });
-                    
-                    if (hasOptions) {
-                        snippetSelect.append(group);
-                    }
+                };
+
+                renderSnippets();
+
+                toolbar.find('.snippet-search').on('input', function() {
+                    renderSnippets($(this).val());
                 });
-            };
-
-            renderSnippets();
-
-            toolbar.find('.snippet-search').on('input', function() {
-                renderSnippets($(this).val());
-            });
-
-            // Theme initial setzen in Select
-            const currentTheme = localStorage.getItem('rex_code_theme') || 'vs-dark';
+            
+            // Theme und Fontsize aus localStorage oder Defaults
+            const currentTheme = localStorage.getItem('rex_code_theme') || 'redaxo-dark';
             toolbar.find('.theme-switcher').val(currentTheme);
 
-            // Font size initial setzen
             const currentFontSize = localStorage.getItem('rex_code_fontsize') || '14';
             toolbar.find('.fontsize-switcher').val(currentFontSize);
+
+            // Editor-Optionen aus localStorage
+            const showLineNumbers = localStorage.getItem('rex_code_line_numbers') !== 'off';
+            const enableWordWrap = localStorage.getItem('rex_code_word_wrap') !== 'off';
+            const showMinimap = localStorage.getItem('rex_code_minimap') === 'on';
+            const showWhitespace = localStorage.getItem('rex_code_whitespace') === 'on';
+
+            // Button-States initial setzen
+            if (showLineNumbers) toolbar.find('.toggle-line-numbers').addClass('active').css('opacity', '1');
+            else toolbar.find('.toggle-line-numbers').css('opacity', '0.5');
+            
+            if (enableWordWrap) toolbar.find('.toggle-word-wrap').addClass('active').css('opacity', '1');
+            else toolbar.find('.toggle-word-wrap').css('opacity', '0.5');
+            
+            if (showMinimap) toolbar.find('.toggle-minimap').addClass('active').css('opacity', '1');
+            else toolbar.find('.toggle-minimap').css('opacity', '0.5');
+            
+            if (showWhitespace) toolbar.find('.toggle-whitespace').addClass('active').css('opacity', '1');
+            else toolbar.find('.toggle-whitespace').css('opacity', '0.5');
+
+            // REDAXO Custom Theme definieren
+            monaco.editor.defineTheme('redaxo-dark', {
+                base: 'vs-dark',
+                inherit: true,
+                rules: [
+                    { token: '', foreground: 'dfe3e9', background: '20262e' },
+                    { token: 'comment', foreground: '6c7a89', fontStyle: 'italic' },
+                    { token: 'keyword', foreground: '5bc0de', fontStyle: 'bold' },
+                    { token: 'string', foreground: 'a8d08d' },
+                    { token: 'number', foreground: 'f5ab35' },
+                    { token: 'variable', foreground: '9b59b6' },
+                    { token: 'function', foreground: '52c6db' },
+                    { token: 'type', foreground: '3498db' },
+                    { token: 'class', foreground: 'e67e22' },
+                    { token: 'operator', foreground: 'e74c3c' },
+                    { token: 'delimiter', foreground: 'bdc3c7' },
+                ],
+                colors: {
+                    'editor.background': '#20262e',
+                    'editor.foreground': '#dfe3e9',
+                    'editorLineNumber.foreground': '#6c7a89',
+                    'editorLineNumber.activeForeground': '#dfe3e9',
+                    'editor.selectionBackground': '#3b4351',
+                    'editor.lineHighlightBackground': '#2a313a',
+                    'editorCursor.foreground': '#5bc0de',
+                    'editorWhitespace.foreground': '#3b4351',
+                    'editorIndentGuide.background': '#3b4351',
+                    'editorIndentGuide.activeBackground': '#6c7a89',
+                    'editor.selectionHighlightBackground': '#3b435155',
+                    'editorBracketMatch.background': '#3b435199',
+                    'editorBracketMatch.border': '#5bc0de',
+                    'scrollbarSlider.background': '#3b435188',
+                    'scrollbarSlider.hoverBackground': '#3b4351bb',
+                    'scrollbarSlider.activeBackground': '#3b4351dd'
+                }
+            });
+
+            // REDAXO Light Theme definieren
+            monaco.editor.defineTheme('redaxo-light', {
+                base: 'vs',
+                inherit: true,
+                rules: [
+                    { token: '', foreground: '333333', background: 'f9fcfb' },
+                    { token: 'comment', foreground: '95a5a6', fontStyle: 'italic' },
+                    { token: 'keyword', foreground: '2980b9', fontStyle: 'bold' },
+                    { token: 'string', foreground: '229954' },
+                    { token: 'number', foreground: 'e67e22' },
+                    { token: 'variable', foreground: '8e44ad' },
+                    { token: 'function', foreground: '138d75' },
+                    { token: 'type', foreground: '3498db' },
+                    { token: 'class', foreground: 'd35400' },
+                    { token: 'operator', foreground: 'c0392b' },
+                    { token: 'delimiter', foreground: '7f8c8d' },
+                ],
+                colors: {
+                    'editor.background': '#f9fcfb',
+                    'editor.foreground': '#333333',
+                    'editorLineNumber.foreground': '#95a5a6',
+                    'editorLineNumber.activeForeground': '#333333',
+                    'editor.selectionBackground': '#d6eaf8',
+                    'editor.lineHighlightBackground': '#ecf5f2',
+                    'editorCursor.foreground': '#2980b9',
+                    'editorWhitespace.foreground': '#ecf5f2',
+                    'editorIndentGuide.background': '#ecf5f2',
+                    'editorIndentGuide.activeBackground': '#bdc3c7',
+                    'editor.selectionHighlightBackground': '#d6eaf855',
+                    'editorBracketMatch.background': '#d6eaf899',
+                    'editorBracketMatch.border': '#2980b9',
+                    'scrollbarSlider.background': '#bdc3c788',
+                    'scrollbarSlider.hoverBackground': '#bdc3c7bb',
+                    'scrollbarSlider.activeBackground': '#bdc3c7dd'
+                }
+            });
 
             // Sprache ermitteln (Default: PHP/HTML Mix)
             let language = 'php';
@@ -2512,13 +2648,14 @@ class CodeAreaReplacer {
             const editor = monaco.editor.create(editorContainer[0], {
                 value: content,
                 language: language,
-                theme: localStorage.getItem('rex_code_theme') || 'vs-dark',
-                fontSize: parseInt(localStorage.getItem('rex_code_fontsize') || '14'),
+                theme: currentTheme,
+                fontSize: parseInt(currentFontSize),
                 automaticLayout: true,
-                minimap: { enabled: false },
+                minimap: { enabled: showMinimap },
                 scrollBeyondLastLine: false,
-                lineNumbers: 'on',
-                wordWrap: 'on'
+                lineNumbers: showLineNumbers ? 'on' : 'off',
+                wordWrap: enableWordWrap ? 'on' : 'off',
+                renderWhitespace: showWhitespace ? 'all' : 'none'
             });
 
             // Theme Switcher Event
@@ -2557,34 +2694,82 @@ class CodeAreaReplacer {
 
             // Snippet Insert Event
             toolbar.find('.snippet-selector').on('change', (e) => {
-                const text = e.target.value;
-                if (!text) return;
+                    const text = e.target.value;
+                    if (!text) return;
 
-                const position = editor.getPosition();
-                editor.executeEdits('snippet', [{
-                    range: new monaco.Range(position.lineNumber, position.column, position.lineNumber, position.column),
-                    text: text,
-                    forceMoveMarkers: true
-                }]);
+                    const position = editor.getPosition();
+                    editor.executeEdits('snippet', [{
+                        range: new monaco.Range(position.lineNumber, position.column, position.lineNumber, position.column),
+                        text: text,
+                        forceMoveMarkers: true
+                    }]);
+                    
+                    editor.focus();
+                    // Reset select
+                    $(e.target).val('');
+                });
+
+            // Toggle Line Numbers
+            toolbar.find('.toggle-line-numbers').on('click', function() {
+                const $btn = $(this);
+                const isActive = $btn.hasClass('active');
+                const newValue = !isActive;
                 
-                editor.focus();
-                // Reset select
-                $(e.target).val('');
+                localStorage.setItem('rex_code_line_numbers', newValue ? 'on' : 'off');
+                editor.updateOptions({ lineNumbers: newValue ? 'on' : 'off' });
+                
+                if (newValue) {
+                    $btn.addClass('active').css('opacity', '1');
+                } else {
+                    $btn.removeClass('active').css('opacity', '0.5');
+                }
             });
 
-            // Fullscreen Toggle
-            toolbar.find('.action-fullscreen').on('click', () => {
-                wrapper.toggleClass('monaco-fullscreen');
-                editor.layout();
+            // Toggle Word Wrap
+            toolbar.find('.toggle-word-wrap').on('click', function() {
+                const $btn = $(this);
+                const isActive = $btn.hasClass('active');
+                const newValue = !isActive;
                 
-                // Toggle Icon
-                const icon = toolbar.find('.action-fullscreen i');
-                if (wrapper.hasClass('monaco-fullscreen')) {
-                    icon.removeClass('fa-expand').addClass('fa-compress');
-                    $('body').css('overflow', 'hidden'); // Prevent body scroll
+                localStorage.setItem('rex_code_word_wrap', newValue ? 'on' : 'off');
+                editor.updateOptions({ wordWrap: newValue ? 'on' : 'off' });
+                
+                if (newValue) {
+                    $btn.addClass('active').css('opacity', '1');
                 } else {
-                    icon.removeClass('fa-compress').addClass('fa-expand');
-                    $('body').css('overflow', '');
+                    $btn.removeClass('active').css('opacity', '0.5');
+                }
+            });
+
+            // Toggle Minimap
+            toolbar.find('.toggle-minimap').on('click', function() {
+                const $btn = $(this);
+                const isActive = $btn.hasClass('active');
+                const newValue = !isActive;
+                
+                localStorage.setItem('rex_code_minimap', newValue ? 'on' : 'off');
+                editor.updateOptions({ minimap: { enabled: newValue } });
+                
+                if (newValue) {
+                    $btn.addClass('active').css('opacity', '1');
+                } else {
+                    $btn.removeClass('active').css('opacity', '0.5');
+                }
+            });
+
+            // Toggle Whitespace
+            toolbar.find('.toggle-whitespace').on('click', function() {
+                const $btn = $(this);
+                const isActive = $btn.hasClass('active');
+                const newValue = !isActive;
+                
+                localStorage.setItem('rex_code_whitespace', newValue ? 'on' : 'off');
+                editor.updateOptions({ renderWhitespace: newValue ? 'all' : 'none' });
+                
+                if (newValue) {
+                    $btn.addClass('active').css('opacity', '1');
+                } else {
+                    $btn.removeClass('active').css('opacity', '0.5');
                 }
             });
 
@@ -2619,9 +2804,19 @@ window.CodeAreaReplacer = CodeAreaReplacer;
 // Globale Instanz für File Browser
 window.codeFileBrowser = null;
 
-// Auto-Init für Replacer
+// Config-Helper: Liest rex.jsProperties (aus PHP gesetzt)
+function getCodeConfig(key, defaultValue) {
+    if (typeof rex !== 'undefined' && rex.jsProperties && typeof rex.jsProperties['code_' + key] !== 'undefined') {
+        return rex.jsProperties['code_' + key];
+    }
+    return defaultValue;
+}
+
+// Auto-Init für Replacer (nur wenn aktiviert)
 $(document).on("rex:ready", function() {
-    if (typeof CodeAreaReplacer !== "undefined") {
+    const replaceRexCode = getCodeConfig('replace_rex_code', '1') === '1';
+    
+    if (replaceRexCode && typeof CodeAreaReplacer !== "undefined") {
         new CodeAreaReplacer().init();
     }
 });

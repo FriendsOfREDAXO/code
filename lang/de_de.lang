@@ -32,3 +32,61 @@ code_error_not_writable = Datei nicht beschreibbar
 code_error_permission_denied = Keine Berechtigung
 code_error_invalid_name = Ungültiger Name
 code_error_file_exists = Datei existiert bereits
+
+# Settings Page
+settings_title = Einstellungen
+settings_editor_title = Editor-Einstellungen
+settings_backup_title = Backup & Sicherheit
+
+settings_replace_rex_code_label = Monaco Editor für .rex-code Textareas
+settings_replace_rex_code_notice = Aktiviert Monaco Editor für alle Textareas mit der Klasse .rex-code (z.B. in Modul-Editoren). Nach Änderungen Seite neu laden.
+settings_replace_rex_code_option = Monaco Editor für .rex-code aktivieren
+
+settings_default_theme_label = Standard Theme
+settings_default_theme_notice = Das Standard-Theme für den Editor (kann vom Benutzer geändert werden)
+
+settings_default_fontsize_label = Standard Schriftgröße
+settings_default_fontsize_notice = Die Standard-Schriftgröße für den Editor (kann vom Benutzer geändert werden)
+
+settings_enable_minimap_label = Minimap
+settings_enable_minimap_notice = Zeigt eine kleine Code-Übersicht am rechten Rand
+settings_enable_minimap_option = Minimap aktivieren
+
+settings_line_numbers_label = Zeilennummern
+settings_line_numbers_notice = Art der Zeilennummernanzeige
+
+settings_word_wrap_label = Zeilenumbruch
+settings_word_wrap_notice = Automatischer Zeilenumbruch für lange Zeilen
+
+settings_enable_snippets_label = Code-Snippets
+settings_enable_snippets_notice = Aktiviert die Code-Snippets-Auswahl im Editor
+settings_enable_snippets_option = Snippets aktivieren
+
+settings_backup_title = Backup-Einstellungen
+
+settings_enable_file_browser_label = File-Browser
+settings_enable_file_browser_notice = Aktiviert den File-Browser für direkten Dateizugriff (Sicherheitsrisiko!)
+settings_enable_file_browser_option = File-Browser aktivieren
+
+settings_auto_backup_label = Auto-Backup
+settings_auto_backup_notice = Erstellt automatisch ein Backup vor jedem Speichervorgang
+settings_auto_backup_option = Automatisches Backup aktivieren
+
+settings_backup_limit_label = Backup-Limit
+settings_backup_limit_notice = Maximale Anzahl an Backups pro Datei (Standard: 10)
+
+settings_trash_limit_label = Papierkorb-Limit
+settings_trash_limit_notice = Maximale Anzahl an Dateien im Papierkorb (Standard: 50)
+
+# File Browser Aktivierung
+file_browser_deactivated_title = File-Browser deaktiviert
+file_browser_deactivated_notice = Der File-Browser wurde aus Sicherheitsgründen deaktiviert (keine Aktivität seit 2 Tagen).
+file_browser_security_warning = Sicherheitswarnung
+file_browser_security_info = Der File-Browser ermöglicht direkten Zugriff auf das Dateisystem:
+file_browser_security_point_1 = Direkter Zugriff auf alle Dateien im REDAXO-Verzeichnis
+file_browser_security_point_2 = Möglichkeit zur Code-Ausführung (PHP, JavaScript)
+file_browser_security_point_3 = Keine Versionskontrolle bei Änderungen
+file_browser_security_point_4 = Nicht für Produktivsysteme empfohlen
+file_browser_security_point_5 = Deaktiviert sich automatisch nach 2 Tagen ohne Nutzung
+file_browser_activate_button = File-Browser aktivieren (2 Tage)
+file_browser_activate_help = Nach Aktivierung kann der File-Browser in den <a href="index.php?page=code/settings">Einstellungen</a> konfiguriert werden.

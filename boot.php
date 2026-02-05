@@ -11,10 +11,15 @@ require_once __DIR__ . '/lib/code_api.php';
 use KLXM\Code\CodeApi;
 
 if (rex::isBackend()) {
+    $addon = rex_addon::get('code');
+    
     // Check if be_style codemirror is active
     if (rex_plugin::get('be_style', 'codemirror')->isAvailable()) {
         rex_view::setJsProperty('code_addon_codemirror_active', true);
     }
+
+    // Config-Werte als JavaScript Properties bereitstellen
+    rex_view::setJsProperty('code_replace_rex_code', $addon->getConfig('replace_rex_code', '1'));
 
     // CSS einbinden mit Cache-Busting (Force Timestamp Update v2)
     rex_view::addCssFile($this->getAssetsUrl('code-editor.css') . '?t=' . (time() + 1));

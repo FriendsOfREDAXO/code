@@ -12,43 +12,44 @@ use Exception;
 
 /**
  * Code Editor Self-Destruct System
- * Automatisches Löschen des Addons nach einer konfigurierbaren Zeit
+ * Automatisches Deaktivieren des File-Browsers nach einer konfigurierbaren Zeit
+ * Das AddOn selbst bleibt aktiv, nur der File-Browser wird gesperrt
  */
 class CodeSelfDestruct
 {
     private rex_addon $addon;
-    private int $autoDeletionDays;
+    private int $autoDeactivateDays;
     private int $warningHours;
     
     public function __construct()
     {
         $this->addon = rex_addon::get('code');
-        $this->autoDeletionDays = (int) $this->addon->getConfig('auto_delete_after_days', 2);
+        $this->autoDeactivateDays = (int) $this->addon->getConfig('auto_deactivate_after_days', 2);
         $this->warningHours = (int) $this->addon->getConfig('warning_hours_before', 24);
     }
     
     /**
-     * Initialisiert das Selbstlöschsystem beim ersten Start
+     * Initialisiert das Deaktivierungssystem beim ersten Start
      */
     public function initialize(): void
     {
-        if ($this->autoDeletionDays <= 0) {
-            return; // Selbstlöschung deaktiviert
+        if ($this->autoDeactivateDays <= 0) {
+            return; // Auto-Deaktivierung deaktiviert
         }
         
         $installTime = $this->getInstallTime();
         if (!$installTime) {
             $this->setInstallTime();
-            rex_logger::factory()->info('Code Editor: Selbstlöschsystem aktiviert - Löschung in ' . $this->autoDeletionDays . ' Tagen');
+            rex_logger::factory()->info('Code Editor: File-Browser Auto-Deaktivierung aktiviert - Deaktivierung in ' . $this->autoDeactivateDays . ' Tagen');
         }
     }
     
     /**
-     * Prüft ob das Addon gelöscht werden soll und führt die Löschung durch
+     * Prüft ob der File-Browser deaktiviert werden soll
      */
     public function checkAndExecute(): array
     {
-        if ($this->autoDeletionDays <= 0) {
+        if ($this->autoDeactivateDays <= 0) {
             return ['status' => 'disabled'];
         }
         
@@ -58,69 +59,57 @@ class CodeSelfDestruct
         }
         
         $now = time();
-        $deletionTime = $installTime + ($this->autoDeletionDays * 24 * 60 * 60);
-        $warningTime = $deletionTime - ($this->warningHours * 60 * 60);
+        $deactivationTime = $installTime + ($this->autoDeactivateDays * 24 * 60 * 60);
+        $warningTime = $deactivationTime - ($this->warningHours * 60 * 60);
         
-        // Zeit abgelaufen - Löschung durchführen
-        if ($now >= $deletionTime) {
-            return $this->executeSelfDestruct();
+        // Zeit abgelaufen - File-Browser deaktivieren
+        if ($now >= $deactivationTime) {
+            return $this->deactivateFileBrowser();
         }
         
         // Warnung anzeigen
         if ($now >= $warningTime) {
-            $hoursLeft = ceil(($deletionTime - $now) / 3600);
+            $hoursLeft = ceil(($deactivationTime - $now) / 3600);
             return [
                 'status' => 'warning',
                 'hours_left' => $hoursLeft,
-                'deletion_time' => date('d.m.Y H:i:s', $deletionTime)
+                'deactivation_time' => date('d.m.Y H:i:s', $deactivationTime)
             ];
         }
         
         // Alles normal
-        $daysLeft = ceil(($deletionTime - $now) / (24 * 60 * 60));
+        $daysLeft = ceil(($deactivationTime - $now) / (24 * 60 * 60));
         return [
             'status' => 'active',
             'days_left' => $daysLeft,
-            'deletion_time' => date('d.m.Y H:i:s', $deletionTime)
+            'deactivation_time' => date('d.m.Y H:i:s', $deactivationTime)
         ];
     }
     
     /**
-     * Führt die Selbstlöschung durch
+     * Deaktiviert den File-Browser (nicht das ganze AddOn)
      */
-    private function executeSelfDestruct(): array
+    private function deactivateFileBrowser(): array
     {
         try {
-            rex_logger::factory()->warning('Code Editor: Automatische Selbstlöschung wird ausgeführt');
+            rex_logger::factory()->warning('Code Editor: File-Browser wird automatisch deaktiviert');
             
-            // 1. Backups löschen
-            $this->cleanupBackups();
+            // File-Browser Config deaktivieren
+            rex_config::set('code', 'enable_file_browser', false);
             
-            // 2. Trash leeren
-            $this->cleanupTrash();
-            
-            // 3. Assets löschen
-            $this->cleanupAssets();
-            
-            // 4. Daten löschen
-            $this->cleanupData();
-            
-            // 5. Addon deaktivieren und deinstallieren
-            $this->uninstallAddon();
-            
-            rex_logger::factory()->info('Code Editor: Selbstlöschung erfolgreich abgeschlossen');
+            rex_logger::factory()->info('Code Editor: File-Browser deaktiviert. Kann in Einstellungen wieder aktiviert werden.');
             
             return [
-                'status' => 'deleted',
-                'message' => 'Code Editor wurde automatisch entfernt. Sicherheitszeitlimit erreicht.'
+                'status' => 'deactivated',
+                'message' => 'File-Browser wurde automatisch deaktiviert. Sicherheitszeitlimit erreicht. Kann in Einstellungen wieder aktiviert werden.'
             ];
             
         } catch (Exception $e) {
-            rex_logger::factory()->error('Code Editor: Fehler bei Selbstlöschung: ' . $e->getMessage());
+            rex_logger::factory()->error('Code Editor: Fehler bei File-Browser-Deaktivierung: ' . $e->getMessage());
             
             return [
                 'status' => 'error',
-                'message' => 'Fehler bei der Selbstlöschung: ' . $e->getMessage()
+                'message' => 'Fehler bei der Deaktivierung: ' . $e->getMessage()
             ];
         }
     }
@@ -315,5 +304,34 @@ class CodeSelfDestruct
                 "Selbstlöschung in {$daysLeft} Tagen" : 
                 "Selbstlöschung in {$hoursLeft} Stunden"
         ];
+    }
+    
+    /**
+     * Setzt den Timer zurück (als ob AddOn gerade installiert wurde)
+     * Wird aufgerufen wenn File-Browser reaktiviert wird
+     * 
+     * @return bool True bei Erfolg
+     */
+    public function resetTimer(): bool
+    {
+        $now = time();
+        
+        try {
+            rex_config::set('code', 'install_time', $now);
+            
+            rex_logger::factory()->log('info', sprintf(
+                'Code AddOn: File-Browser Timer zurückgesetzt auf %s',
+                date('d.m.Y H:i:s', $now)
+            ));
+            
+            return true;
+        } catch (Exception $e) {
+            rex_logger::factory()->log('error', sprintf(
+                'Code AddOn: Fehler beim Zurücksetzen des Timers: %s',
+                $e->getMessage()
+            ));
+            
+            return false;
+        }
     }
 }

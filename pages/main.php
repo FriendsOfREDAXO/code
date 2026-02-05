@@ -2,9 +2,64 @@
 
 use KLXM\Code\CodeSelfDestruct;
 
+$addon = rex_addon::get('code');
+
 // Nur für Admins verfügbar
 if (!rex::getUser()->isAdmin()) {
     echo rex_view::error('Nur für Administratoren verfügbar');
+    return;
+}
+
+// Aktivierung über POST-Request
+if (rex_post('enable_file_browser', 'string') === '1') {
+    rex_config::set('code', 'enable_file_browser', true);
+    // Timer zurücksetzen
+    $selfDestruct = new CodeSelfDestruct();
+    $selfDestruct->resetTimer();
+    echo rex_view::success('File-Browser wurde aktiviert. Auto-Deaktivierung in 2 Tagen.');
+}
+
+// Prüfe ob File-Browser aktiviert ist
+$fileBrowserEnabled = rex_config::get('code', 'enable_file_browser', true);
+
+if (!$fileBrowserEnabled) {
+    // Aktivierungs-Formular mit Warnung anzeigen
+    $content = '
+    <div class="panel panel-warning">
+        <header class="panel-heading">
+            <div class="panel-title">
+                <i class="rex-icon fa-exclamation-triangle"></i> File-Browser deaktiviert
+            </div>
+        </header>
+        <div class="panel-body">
+            <h3>⚠️ Sicherheitswarnung</h3>
+            <p>Der File-Browser wurde automatisch deaktiviert, da er länger als 2 Tage nicht genutzt wurde.</p>
+            
+            <div class="alert alert-danger">
+                <h4>Wichtige Hinweise zur Sicherheit:</h4>
+                <ul>
+                    <li><strong>Zugriff auf alle Dateien:</strong> Der File-Browser ermöglicht direkten Zugriff auf alle PHP-Dateien des REDAXO-Systems</li>
+                    <li><strong>Code-Ausführung:</strong> Änderungen werden sofort ausgeführt und können das System beeinträchtigen</li>
+                    <li><strong>Keine Versionskontrolle:</strong> Backups werden erstellt, aber Git-Integration ist empfohlen</li>
+                    <li><strong>Nur für Entwicklung:</strong> Nicht für Produktivsysteme empfohlen</li>
+                    <li><strong>Auto-Deaktivierung:</strong> Der File-Browser deaktiviert sich nach 2 Tagen Inaktivität automatisch</li>
+                </ul>
+            </div>
+            
+            <form method="post" action="">
+                <input type="hidden" name="enable_file_browser" value="1">
+                <button type="submit" class="btn btn-warning">
+                    <i class="rex-icon fa-unlock"></i> File-Browser aktivieren (2 Tage)
+                </button>
+                <a href="' . rex_url::backendPage('code/settings') . '" class="btn btn-default">
+                    <i class="rex-icon fa-cog"></i> Einstellungen
+                </a>
+            </form>
+        </div>
+    </div>
+    ';
+    
+    echo $content;
     return;
 }
 
@@ -13,15 +68,9 @@ $selfDestruct = new CodeSelfDestruct();
 $selfDestruct->initialize();
 $destructStatus = $selfDestruct->checkAndExecute();
 
-// Bei Deaktivierung zum Backend weiterleiten ohne Nachricht
+// Bei Deaktivierung Seite neu laden
 if ($destructStatus['status'] === 'deactivated') {
-    header('Location: ' . rex_url::backendController());
-    exit;
-}
-
-// Bei force_inactive auch weiterleiten
-if (rex_config::get('code', 'force_inactive', false)) {
-    header('Location: ' . rex_url::backendController());
+    header('Location: ' . rex_url::backendPage('code/main'));
     exit;
 }
 

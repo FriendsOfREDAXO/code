@@ -26,3 +26,6 @@ page:
             title: 'translate:code_search'
         backups:
             title: 'Backup & Trash'
+        settings:
+            title: 'translate:settings_title'
+            perm: admin[]

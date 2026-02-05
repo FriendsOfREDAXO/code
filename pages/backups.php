@@ -1,8 +1,71 @@
 <?php
 
+use KLXM\Code\CodeSelfDestruct;
+
 /**
  * Backup & Trash Management
  */
+
+$addon = rex_addon::get('code');
+
+// Nur für Admins verfügbar
+if (!rex::getUser()->isAdmin()) {
+    echo rex_view::error('Nur für Administratoren verfügbar');
+    return;
+}
+
+// Aktivierung über POST-Request
+if (rex_post('enable_file_browser', 'string') === '1') {
+    rex_config::set('code', 'enable_file_browser', true);
+    // Timer zurücksetzen
+    $selfDestruct = new CodeSelfDestruct();
+    $selfDestruct->resetTimer();
+    echo rex_view::success('File-Browser wurde aktiviert. Auto-Deaktivierung in 2 Tagen.');
+}
+
+// Prüfe ob File-Browser aktiviert ist
+$fileBrowserEnabled = rex_config::get('code', 'enable_file_browser', true);
+
+if (!$fileBrowserEnabled) {
+    // Aktivierungs-Formular mit Warnung anzeigen
+    $activationPanel = '
+    <div class="panel panel-warning">
+        <header class="panel-heading">
+            <div class="panel-title">
+                <i class="rex-icon fa-exclamation-triangle"></i> ' . $addon->i18n('file_browser_deactivated_title') . '
+            </div>
+        </header>
+        <div class="panel-body">
+            <p>' . $addon->i18n('file_browser_deactivated_notice') . '</p>
+            
+            <div class="alert alert-danger" style="margin-top: 15px;">
+                <h4><i class="fa fa-exclamation-triangle"></i> ' . $addon->i18n('file_browser_security_warning') . '</h4>
+                <p>' . $addon->i18n('file_browser_security_info') . '</p>
+                <ul>
+                    <li>' . $addon->i18n('file_browser_security_point_1') . '</li>
+                    <li>' . $addon->i18n('file_browser_security_point_2') . '</li>
+                    <li>' . $addon->i18n('file_browser_security_point_3') . '</li>
+                    <li>' . $addon->i18n('file_browser_security_point_4') . '</li>
+                    <li>' . $addon->i18n('file_browser_security_point_5') . '</li>
+                </ul>
+            </div>
+            
+            <form method="post" style="margin-top: 15px;">
+                <input type="hidden" name="enable_file_browser" value="1">
+                <button type="submit" class="btn btn-warning">
+                    <i class="fa fa-unlock"></i> ' . $addon->i18n('file_browser_activate_button') . '
+                </button>
+                <p class="help-block" style="margin-top: 10px;">
+                    ' . $addon->i18n('file_browser_activate_help') . '
+                </p>
+            </form>
+        </div>
+    </div>
+    ';
+    
+    echo $activationPanel;
+    return;
+}
 
 $content = '
 <div class="code-container">
