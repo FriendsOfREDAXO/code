@@ -5,13 +5,13 @@
     "license": "MIT",
     "authors": [
         {
-            "name": "KLXM Crossmedia GmbH",
-            "email": "info@klxm.de"
+            "name": "Friends Of REDAXO",
+            "homepage": "https://github.com/FriendsOfREDAXO"
         }
     ],
     "autoload": {
         "psr-4": {
-            "KLXM\\Code\\": "lib/"
+            "FriendsOfRedaxo\\Code\\": "lib/"
         }
     },
     "require": {

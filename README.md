@@ -248,7 +248,7 @@ MIT License - see [LICENSE](LICENSE) file.
 
 ## Author
 
-**KLXM Crossmedia GmbH**
+**Friends Of REDAXO**
 Developed for REDAXO CMS
 
 ## Support
