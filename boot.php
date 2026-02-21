@@ -8,7 +8,7 @@
 // API-Klasse laden
 require_once __DIR__ . '/lib/code_api.php';
 
-use KLXM\Code\CodeApi;
+use FriendsOfRedaxo\Code\CodeApi;
 
 if (rex::isBackend()) {
     $addon = rex_addon::get('code');

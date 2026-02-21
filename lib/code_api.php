@@ -1,6 +1,6 @@
 <?php
 
-namespace KLXM\Code;
+namespace FriendsOfRedaxo\Code;
 
 use Exception;
 use rex_addon;

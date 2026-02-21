@@ -1,7 +1,7 @@
 package: code
 version: '1.4.0'
-author: KLXM
-supportpage: https://github.com/klxm/code
+author: Friends Of REDAXO
+supportpage: https://github.com/FriendsOfREDAXO/code
 
 requires:
     redaxo: '^5.18.0'

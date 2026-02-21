@@ -1,6 +1,6 @@
 <?php
 
-use KLXM\Code\CodeSelfDestruct;
+use FriendsOfRedaxo\Code\CodeSelfDestruct;
 
 /**
  * Backup & Trash Management
