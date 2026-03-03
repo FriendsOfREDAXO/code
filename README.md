@@ -177,6 +177,146 @@ The Monaco Editor automatically replaces `.rex-code` textareas in:
 3. Results show filename, line number, context
 4. Click result to open file at specific line
 
+### API (api AddOn)
+When the **api** addon is installed and active, the code addon registers these endpoints automatically:
+
+**Important prerequisite:** File operations (`/api/code/files` and `/api/code/file`) only work when **Code → Settings → File-Browser aktivieren** is enabled. If disabled, the API returns `403`.
+
+- `GET /api/code/capabilities` (Bearer token scope: `code/capabilities`)
+- `GET /api/code/files` (Bearer token scope: `code/files/list`, query: `path`)
+- `POST /api/code/files` (Bearer token scope: `code/files/create`, JSON body: `path`, `name`, `type=file|folder`)
+- `GET /api/code/file` (Bearer token scope: `code/file/read`, query: `path`)
+- `PUT/PATCH /api/code/file` (Bearer token scope: `code/file/update`, JSON body: `path`, `content`)
+- `DELETE /api/code/file` (Bearer token scope: `code/file/delete`, query: `path`)
+- `GET /api/backend/code/capabilities` (Backend session/cookie auth)
+- `GET /api/backend/code/files` (Backend session/cookie auth)
+- `POST /api/backend/code/files` (Backend session/cookie auth)
+- `GET/PUT/PATCH/DELETE /api/backend/code/file` (Backend session/cookie auth)
+
+Response includes:
+- addon metadata (`addon`, `version`)
+- file browser status (`file_browser_enabled`)
+- editable file formats (`allowed_extensions`)
+- excluded directories (`excluded_directories`)
+
+`GET /api/code/files` returns the current directory entries (folders + allowed file types).
+
+`POST /api/code/files` creates a new file or folder. Example body:
+
+```json
+{
+    "path": "redaxo/src/addons/code",
+    "name": "example.csv",
+    "type": "file"
+}
+```
+
+`GET /api/code/file` returns file metadata and `content` for an allowed file.
+
+`PUT /api/code/file` updates file content. Example body:
+
+```json
+{
+    "path": "redaxo/src/addons/code/example.csv",
+    "content": "id;name\n1;Demo\n"
+}
+```
+
+`DELETE /api/code/file` deletes an allowed non-protected file.
+
+#### Curl examples (copy & paste)
+
+Note: These examples require that the file browser is enabled in the code addon settings.
+
+```bash
+BASE='https://localhost:8443'
+TOKEN='YOUR_TOKEN'
+```
+
+List directory entries:
+
+```bash
+curl -k -sS -G \
+    -H "Authorization: Bearer $TOKEN" \
+    --data-urlencode "path=redaxo/src/addons/code" \
+    "$BASE/api/code/files"
+```
+
+Create a new CSV file:
+
+```bash
+curl -k -sS -X POST \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "Content-Type: application/json" \
+    --data '{"path":"redaxo/src/addons/code","name":"api_demo.csv","type":"file"}' \
+    "$BASE/api/code/files"
+```
+
+Read file content:
+
+```bash
+curl -k -sS -G \
+    -H "Authorization: Bearer $TOKEN" \
+    --data-urlencode "path=redaxo/src/addons/code/api_demo.csv" \
+    "$BASE/api/code/file"
+```
+
+Update file content:
+
+```bash
+curl -k -sS -X PUT \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "Content-Type: application/json" \
+    --data '{"path":"redaxo/src/addons/code/api_demo.csv","content":"id;name\n1;Demo\n"}' \
+    "$BASE/api/code/file"
+```
+
+Delete file:
+
+```bash
+curl -k -sS -X DELETE -G \
+    -H "Authorization: Bearer $TOKEN" \
+    --data-urlencode "path=redaxo/src/addons/code/api_demo.csv" \
+    "$BASE/api/code/file"
+```
+
+Required token scopes:
+
+- `code/capabilities`
+- `code/files/list`
+- `code/files/create`
+- `code/file/read`
+- `code/file/update`
+- `code/file/delete`
+
+#### Copilot instructions example
+
+Copy this block into your project-level `.github/copilot-instructions.md` if you want consistent implementation rules for this addon API:
+
+```md
+## Code AddOn API Conventions
+
+For `redaxo/src/addons/code` API routes registered into the `api` addon:
+
+- Register route packages only when the `api` addon is available:
+    - `rex_addon::get('api')->isAvailable()`
+    - `class_exists(\FriendsOfRedaxo\Api\RouteCollection::class)`
+- Keep implementation in `lib/Api/RoutePackage/Code.php` and `lib/Api/CodeFileService.php`.
+- Use `FriendsOfRedaxo\Api\RouteCollection::registerRoute(...)` with `BearerAuth` and tag `code`.
+- Provide backend mirror routes via `lib/Api/RoutePackage/Backend/Code.php`.
+- Respect code addon config flag `enable_file_browser` and return `403` if disabled.
+- Accept only file types from `FriendsOfRedaxo\Code\EditorConfig::getAllowedExtensions()`.
+- Keep directory/path restrictions inside REDAXO base path and block traversal via realpath checks.
+- Do not allow deletion of protected files (e.g. `.htaccess`, `index.php`, `composer.json`, `boot.php`, `install.php`).
+- Keep route scopes stable for token management:
+    - `code/capabilities`
+    - `code/files/list`
+    - `code/files/create`
+    - `code/file/read`
+    - `code/file/update`
+    - `code/file/delete`
+```
+
 ### Backup & Trash
 1. Navigate to **Code → Backup & Trash**
 2. **Backups tab** - restore previous file versions

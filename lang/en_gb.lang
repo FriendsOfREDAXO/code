@@ -30,6 +30,8 @@ code_file_restored = File restored
 code_trash_emptied = Trash emptied
 code_confirm_delete = Really delete?
 code_confirm_empty_trash = Really empty trash?
+
+api_openapi_tag_code_description = Endpoints of the code addon
 code_unsaved_changes = There are unsaved changes. Continue anyway?
 code_create_file = Create new file
 code_create_folder = Create new folder

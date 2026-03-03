@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.5.0] - 2026-03-03
+### Added
+- API-Integration für das `api` AddOn über RoutePackages (`code` und `backend/code`).
+- Neue Endpunkte für Dateiverwaltung:
+  - `GET /api/code/files` (`code/files/list`)
+  - `POST /api/code/files` (`code/files/create`)
+  - `GET /api/code/file` (`code/file/read`)
+  - `PUT/PATCH /api/code/file` (`code/file/update`)
+  - `DELETE /api/code/file` (`code/file/delete`)
+- Backend-Mirror-Routen für Session-Auth über `/api/backend/code/*`.
+- Neuer `CodeFileService` mit zentraler Logik für Browse/Create/Read/Update/Delete.
+- Erweiterte erlaubte Textformate (u.a. `csv`, `tsv`, `log`, `rst`, `toml`, `cfg`, `properties`).
+
+### Changed
+- API-Routen werden nur registriert, wenn das `api` AddOn verfügbar ist.
+- API-Dateioperationen respektieren den Schalter `enable_file_browser` und liefern bei Deaktivierung `403`.
+- README erweitert um Scope-Liste, Curl-Beispiele und Copilot-Instructions-Beispiel.
+
+### Security
+- Pfadzugriffe bleiben auf den REDAXO-Basispfad beschränkt (Traversal-Schutz via `realpath`).
+- Löschen geschützter Dateien bleibt blockiert (z.B. `.htaccess`, `index.php`, `composer.json`, `boot.php`, `install.php`).
+
 ## [1.2.1] - 2026-01-28
 ### Fixed
 - Fatal Error: `CodeApi::__construct()` neu deklariert (doppelter Konstruktor entfernt).

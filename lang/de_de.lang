@@ -90,3 +90,5 @@ file_browser_security_point_4 = Nicht für Produktivsysteme empfohlen
 file_browser_security_point_5 = Deaktiviert sich automatisch nach 2 Tagen ohne Nutzung
 file_browser_activate_button = File-Browser aktivieren (2 Tage)
 file_browser_activate_help = Nach Aktivierung kann der File-Browser in den <a href="index.php?page=code/settings">Einstellungen</a> konfiguriert werden.
+
+api_openapi_tag_code_description = Endpunkte des Code-AddOns

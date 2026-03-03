@@ -19,15 +19,9 @@ class CodeApi
 {
     private string $dataDir;
     private string $trashDir;
-    private array $allowedExtensions = [
-        'php', 'html', 'htm', 'css', 'scss', 'less', 'js', 'json', 'xml', 'sql', 
-        'md', 'txt', 'yml', 'yaml', 'ini', 'conf', 'htaccess', 'gitignore', 'env',
-        'twig', 'vue', 'ts', 'jsx', 'tsx', 'py', 'rb', 'go', 'java', 'c', 'cpp'
-    ];
-    
-    private array $excludedDirs = [
-        'node_modules', '.git', '.svn', 'vendor', 'cache', 'log', 'tmp', 'temp'
-    ];
+    private array $allowedExtensions = [];
+
+    private array $excludedDirs = [];
 
     public function __construct()
     {
@@ -40,6 +34,9 @@ class CodeApi
             echo json_encode(['success' => false, 'error' => 'Access denied. Administrator privileges required.']);
             exit;
         }
+
+        $this->allowedExtensions = EditorConfig::getAllowedExtensions();
+        $this->excludedDirs = EditorConfig::getExcludedDirectories();
 
         $this->dataDir = rex_path::addonData('code', 'backups');
         $this->trashDir = rex_path::addonData('code', 'trash');

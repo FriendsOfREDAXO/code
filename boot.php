@@ -9,6 +9,9 @@
 require_once __DIR__ . '/lib/code_api.php';
 
 use FriendsOfRedaxo\Code\CodeApi;
+use FriendsOfRedaxo\Code\Api\RoutePackage\Backend\Code as ApiBackendCodeRoutePackage;
+use FriendsOfRedaxo\Code\Api\RoutePackage\Code as ApiCodeRoutePackage;
+use FriendsOfRedaxo\Api\RouteCollection;
 
 if (rex::isBackend()) {
     $addon = rex_addon::get('code');
@@ -26,6 +29,11 @@ if (rex::isBackend()) {
     
     // JavaScript einbinden mit Cache-Busting (Force Timestamp Update v2)
     rex_view::addJsFile($this->getAssetsUrl('code-editor.js') . '?t=' . (time() + 1));
+}
+
+if (rex_addon::get('api')->isAvailable() && class_exists(RouteCollection::class)) {
+    RouteCollection::registerRoutePackage(new ApiCodeRoutePackage());
+    RouteCollection::registerRoutePackage(new ApiBackendCodeRoutePackage());
 }
 
 // API Endpoints registrieren

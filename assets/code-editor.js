@@ -991,8 +991,15 @@ class CodeFileBrowser {
             'sql': 'fa-database',
             'md': 'fa-file-text-o',
             'txt': 'fa-file-text-o',
+            'csv': 'fa-file-text-o',
+            'tsv': 'fa-file-text-o',
+            'log': 'fa-file-text-o',
+            'rst': 'fa-file-text-o',
             'yml': 'fa-file-code-o',
-            'yaml': 'fa-file-code-o'
+            'yaml': 'fa-file-code-o',
+            'toml': 'fa-file-code-o',
+            'cfg': 'fa-file-code-o',
+            'properties': 'fa-file-code-o'
         };
         
         return iconMap[item.extension] || 'fa-file-o';
@@ -1011,8 +1018,15 @@ class CodeFileBrowser {
             'sql': 'sql',
             'md': 'markdown',
             'txt': 'plaintext',
+            'csv': 'plaintext',
+            'tsv': 'plaintext',
+            'log': 'plaintext',
+            'rst': 'plaintext',
             'yml': 'yaml',
-            'yaml': 'yaml'
+            'yaml': 'yaml',
+            'toml': 'plaintext',
+            'cfg': 'plaintext',
+            'properties': 'plaintext'
         };
         
         return languageMap[extension] || 'plaintext';
@@ -1021,7 +1035,8 @@ class CodeFileBrowser {
     isEditableFile(extension) {
         const editableExtensions = [
             'php', 'html', 'htm', 'css', 'scss', 'less', 'js', 'json', 'xml', 'sql',
-            'md', 'txt', 'yml', 'yaml', 'ini', 'conf', 'htaccess', 'gitignore', 'env'
+            'md', 'txt', 'csv', 'tsv', 'log', 'rst', 'toml', 'cfg', 'properties',
+            'yml', 'yaml', 'ini', 'conf', 'htaccess', 'gitignore', 'env'
         ];
         
         return editableExtensions.includes(extension);
